@@ -6,4 +6,4 @@
 
 ## Projects...
 
-- [Go Fish v1](0.1-gf)
+- [Go Fish v1](go-fish)
