@@ -1,15 +1,15 @@
 
 
-// assume that all sizes are for a screen of 100 units
+// assume that all sizes are for a screen of 20 units
 // ex: size 0.5 should be 0.5 units of size
 let player = {
-  size: 0.5/100,
+  size: 0.5/20,
   clr: "white",
   ammo: [],
   gun: [],
   x: 0,
   y: 0,
-  speed: 0.5/100
+  speed: 0.5/20
 };
 
 function moveP(){
@@ -31,7 +31,11 @@ function moveP(){
   if (s){
     vely +=player.speed;
   }
-  let spd = player.speed/(velx+vely);
+
+  let spd = 1;
+  if (velx+vely>0){
+    player.speed/(velx+vely);
+  }
   if(a){
     player.x -= spd;
   }
@@ -44,17 +48,33 @@ function moveP(){
   if(s){
     player.y += spd;
   }
-
 }
 
 
 let border = {
+  gl: true,
   lx: 0,
   ly: 0,
   hx: 0,
   hy: 0
 };
 
+function barrier(unit, object){
+  if(object.gl){
+    if(unit.x+unit.size*wind.size>=object.lx){
+      unit.x = object.lx-unit.size*wind.size;
+    }
+    if(unit.x-unit.size*wind.size<=object.hx){
+      unit.x = object.lx+unit.size*wind.size;
+    }
+    if(unit.y+unit.size*wind.size>=object.ly){
+      unit.y = object.ly+unit.size*wind.size;
+    }
+    if(unit.y-unit.size*wind.size<=object.hy){
+      unit.y = object.ly+unit.size*wind.size;
+    }
+  }
+}
 
 
 let bullets = [];
@@ -71,13 +91,17 @@ function display(){
   let h = windowHeight;
   wind.w = w;
   wind.h = h;
+  let small;
   if (w<=h){
-    wind.size = w;
+    small = w;
   }
   else{
-    wind.size = h;
+    small = h;
   }
-  console.log(wind.size, w, h);
+  wind.size = small;
+  border.lx,border.ly= small;
+  
+  // console.log(wind.size, w, h);
   createCanvas(wind.w, wind.h);
 }
 
@@ -89,21 +113,14 @@ function setup() {
 
 }
 
-function displaySide(){
-  let corner = 50;
-  fill("red");
-  //    corner a x y,    corner b x  y,    corner c x y,   corner d x y
-  quad(corner,corner,corner*2, corner,corner*2,corner*2,corner,corner*2);
-
-}
 
 function draw() {
   // display();
-  background(220);
+  background(30);
   fill("red");
-  displaySide();
-  rect(wind.size/2,wind.size/2,100, 100);
-  // circle(player.x,player.y,player.size*100);
-  // moveP();
+  moveP();
+  barrier(player,border);
+  circle(player.x,player.y,player.size*wind.size);
+  
 }
 
