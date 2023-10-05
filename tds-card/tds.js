@@ -70,12 +70,14 @@ function display(){
   let w = windowWidth;
   let h = windowHeight;
   wind.w = w;
-  wind.h;
+  wind.h = h;
   if (w<=h){
     wind.size = w;
-  }else{
+  }
+  else{
     wind.size = h;
   }
+  console.log(wind.size, w, h);
   createCanvas(wind.w, wind.h);
 }
 
@@ -87,11 +89,21 @@ function setup() {
 
 }
 
+function displaySide(){
+  let corner = 50;
+  fill("red");
+  //    corner a x y,    corner b x  y,    corner c x y,   corner d x y
+  quad(corner,corner,corner*2, corner,corner*2,corner*2,corner,corner*2);
+
+}
+
 function draw() {
-  display();
+  // display();
   background(220);
   fill("red");
-  circle(player.x,player.y,player.size*100);
-  moveP();
+  displaySide();
+  rect(wind.size/2,wind.size/2,100, 100);
+  // circle(player.x,player.y,player.size*100);
+  // moveP();
 }
 
