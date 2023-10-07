@@ -1,7 +1,7 @@
 
 
 // assume that all sizes are for a screen of 20 units
-// ex: size 0.5 should be 0.5 units of size
+// ex: size 0.5 should be 0.5/20 units of size
 let player = {
   size: 0.5/20,
   clr: "white",
