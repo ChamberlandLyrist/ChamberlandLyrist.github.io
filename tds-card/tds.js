@@ -86,22 +86,40 @@ let bullets = {
 };
 
 
+let released = true;
+
 function MakeBullet(constructor,rank){
   if(game){
     let card = new constructor(rank);
+    // console.log(card);
     let shot;
-    for (let n = 0; n<= card.bullets; n++){
+    let vect;
+    for (let n = 0; n< card.bullets; n++){
     
       bullets.info.push(card);
-      shot = Matter.Bodies.circle(player.body.x,player.body.y,bullets.size);
+      vect = aim();
+      shot = Matter.Bodies.circle(player.body.position.x+vect.x*player.size/2+vect.x*bullets.size/2,player.body.position.y+vect.y*player.size/2+vect.x*bullets.size/2,bullets.size);
+      
+      // Matter.Body.applyForce(shot)
+
       bullets.bodies.push(shot);
     
       Matter.World.add(engine.world, [shot]);
     }
   }
-
 }
 
+
+function aim(){
+  let start = player.body.position;
+  let end = {x: mouseX, y: mouseY};
+  let vector = {x: end.x-start.x, y: end.y-start.y};
+  let tot = Math.abs(end.x-start.x) + Math.abs(end.y-start.y);
+  vector.x = vector.x/tot;
+  vector.y = vector.y/tot;
+  console.log(vector);
+  return vector;
+}
 
 let wind = {
   w: 0,
@@ -181,7 +199,6 @@ function setup() {
 }
 
 
-
 function draw() {
   // display();
   background(30);
@@ -197,13 +214,17 @@ function draw() {
   rect(pos2.x, pos2.y, 50, 50);
 
   if (mouseIsPressed===true){
-    if (mouseButton === LEFT){
+    if (mouseButton === LEFT && released){
       MakeBullet(Spades,3);
+      released = false;
     }
-  } 
+  } else {
+    released = true;
+  }
+
 
   let posB;
-  console.log(bullets.bodies.length);
+  // console.log(bullets);
   if (bullets.bodies.length > 0){
     for (let shot of bullets.bodies){
       posB = shot.position;
