@@ -6,6 +6,6 @@
 
 ## Projects...
 
-- [Go Fish v1](go-fish)
+- [Int Scene: Go Fish v1](go-fish)
 
-- [TopDownThrower](tds-card)
+- [Arr/Obj Ass: TopDownThrower](tds-card)

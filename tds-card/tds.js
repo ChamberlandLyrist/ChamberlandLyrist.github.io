@@ -22,7 +22,8 @@ let player = {
   size: 0,
   ratio: 0.5/20,
   clr: "red",
-  ammo: [],
+  deck: [],
+  reserves: [],
   gun: [],
   speed: 0.1/20,
   body: null,
@@ -85,13 +86,32 @@ function Spades(n){
     return n+1;
   };
   this.dmg = this.variable(n);
-  this.range = 6/20;
+  this.range = {full:6/20, max: 6/20+2/20};
+  this.travel = 0;
   this.spd = 0.5/20;
   this.bounces = 2;
+  // cool is in millis
+  this.cool = 1*1000,
   this.uses = 1;
   this.bullets = 1;
   this.spread = 0;
   this.vector = null;
+}
+
+function makeDeck(player,suit){
+  // let card;
+  for (let rank = 2; rank <= 13; rank++){
+    player.deck.push(new suit(rank));
+    // card = new suit(rank);
+    // player.deck.push(card);
+    // console.log(card);
+  }
+}
+
+
+function prepareDeck(player){
+  player.reserves = player.deck;
+  shuffle(player.reserves, true);
 }
 
 let bullets = {
@@ -103,13 +123,18 @@ let bullets = {
 
 
 
-
-
 let released = true;
+let cool = 0;
 
-function MakeBullet(suit,rank){
+let reload = {
+  time: 3*1000,
+  wait: 0,
+  done: false
+};
+
+function MakeBullet(){
   if(game){
-    let card = new suit(rank);
+    let card = player.hand.splice(0,1);
     let vect = aim();
     // console.log(card);
     let shot;
@@ -143,13 +168,18 @@ function MakeBullet(suit,rank){
         Matter.Body.setVelocity(shot, Matter.Vector.mult(Matter.Vector.normalise(shot.velocity), card.spd));
       // }, 100); // Add a delay of 100 milliseconds
       
-      
       // console.log(shot);
       // console.log(shot.velocity);
-      
-      
-      
     }
+
+    console.log(card);
+    cool = millis()+card.cool();
+
+    if(player.hand.length === 0){
+      reload.wait = millis()+reload.time;
+      reload.done = false;
+    }
+
   }
 }
 
@@ -207,20 +237,28 @@ let game = false;
 function setup() {
   display();
 
+
+  makeDeck(player,Spades);
+  // console.log(player.deck);
+  prepareDeck(player);
+  
+
+
+
   // make {x:, y:}
-  let spawn = wind.size/2
+  let spawn = wind.size/2;
 
   // wrote this myself but it was mostly a change values kind of deal
   thin = wind.size/5;
-  long = wind.size*2;
+  long = wind.size;
   // north
-  border.push(Matter.Bodies.rectangle(5,5-thin,long,thin, {isStatic:true}));
+  border.push(Matter.Bodies.rectangle(0+wind.size/2,0-thin/2,long,thin, {isStatic:true}));
   // east
-  border.push(Matter.Bodies.rectangle(5+wind.size+thin,5,thin,long,{isStatic:true}));
+  border.push(Matter.Bodies.rectangle(0+wind.size+thin/2,0+wind.size/2,thin,long,{isStatic:true}));
   // south
-  border.push(Matter.Bodies.rectangle(5,5+wind.size+thin,long,thin,{isStatic:true}));
+  border.push(Matter.Bodies.rectangle(0+wind.size/2,0+wind.size+thin/2,long,thin,{isStatic:true}));
   // west
-  border.push(Matter.Bodies.rectangle(5-thin,5,thin,long, {isStatic:true}));
+  border.push(Matter.Bodies.rectangle(0-thin/2,0+wind.size/2,thin,long, {isStatic:true}));
 
 
   //I learned about a little thing called restitution and that it makes things bouncy...
@@ -256,6 +294,13 @@ function draw() {
   // display();
   background(30);
 
+
+  if (!reload.done && reload.wait <= millis()){
+    player.hand = player.deck.splice(0,4);
+    console.log(player.hand);
+    reload.done = true;
+  }
+
   moveP();
   // Update p5.js sketch based on Matter.js physics
   let posP = player.body.position;
@@ -269,7 +314,7 @@ function draw() {
   rect(pos2.x, pos2.y, 50, 50);
 
   if (mouseIsPressed===true){
-    if (mouseButton === LEFT && released){
+    if (mouseButton === LEFT && released && cool <= millis()){
       MakeBullet(Spades,3);
       released = false;
     }
