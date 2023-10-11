@@ -19,14 +19,16 @@
 // assume that all sizes are for a screen of 20 units
 // ex: size 0.5 should be 0.5/20 units of size
 let player = {
-  size: 0,
-  ratio: 0.5/20,
+  xrat: 0,
+  yrat: 0,
+  srat: 0.5/20,
   clr: "red",
   deck: [],
   reserves: [],
   gun: [],
   speed: 0.1/20,
   body: null,
+  circle: true
 };
 
 let aK = 65;
@@ -36,30 +38,30 @@ let sK = 83;
 
 let maxSpeed = 5;
 
-function moveP(){
+function moveP(player){
 
-  let velx = 0;
-  let vely = 0;
+  let body = player.body;
+  let pos = body.position;
   let a = keyIsDown(aK);
   let d = keyIsDown(dK);
   let w = keyIsDown(wK);
   let s = keyIsDown(sK);
 
-  let spd = player.speed;
+  let spd = player.speed*wind.size;
 
   //introduced by Chat
   // Apply a force to player when a key is pressed
   if (a) {
-    Matter.Body.applyForce(player.body, { x: player.body.position.x, y: player.body.position.y }, { x: -1*spd, y: 0 });
+    Matter.Body.applyForce(body, { x: pos.x, y: pos.y }, { x: -1*spd, y: 0 });
   }
   if (d) {
-    Matter.Body.applyForce(player.body, { x: player.body.position.x, y: player.body.position.y }, { x: spd, y: 0 });
+    Matter.Body.applyForce(body, { x:pos.x, y: pos.y }, { x: spd, y: 0 });
   }
   if (w) {
-    Matter.Body.applyForce(player.body, { x: player.body.position.x, y: player.body.position.y }, { x: 0, y: -1*spd });
+    Matter.Body.applyForce(body, { x: pos.x, y: pos.y }, { x: 0, y: -1*spd });
   }
   if (s) {
-    Matter.Body.applyForce(player.body, { x: player.body.position.x, y: player.body.position.y }, { x: 0, y: spd });
+    Matter.Body.applyForce(body, { x: pos.x, y: pos.y }, { x: 0, y: spd });
   }
 
   //introduced by Chat
@@ -68,11 +70,14 @@ function moveP(){
   const speed1 = Matter.Vector.magnitude(velocity1);
   if(a||d||w||s){
     if (speed1 > maxSpeed) {
-      Matter.Body.setVelocity(player.body, Matter.Vector.mult(Matter.Vector.normalise(velocity1), maxSpeed));
+      Matter.Body.setVelocity(body, Matter.Vector.mult(Matter.Vector.normalise(velocity1), maxSpeed));
     }
   }else if(speed1 > 0.1) {
-    Matter.Body.setVelocity(player.body, Matter.Vector.mult(Matter.Vector.normalise(velocity1), 0.1));
+    Matter.Body.setVelocity(body, Matter.Vector.mult(Matter.Vector.normalise(velocity1), 0.1));
   }
+
+  player.xrat = pos.x / wind.size;
+  player.yrat = pos.y / wind.size;
 
 }
 
@@ -98,6 +103,7 @@ function Spades(n){
   this.vector = null;
 }
 
+
 function makeDeck(player,suit){
   // let card;
   for (let rank = 2; rank <= 13; rank++){
@@ -107,12 +113,11 @@ function makeDeck(player,suit){
     // console.log(card);
   }
 }
-
-
 function prepareDeck(player){
   player.reserves = player.deck;
   shuffle(player.reserves, true);
 }
+
 
 let bullets = {
   info: [],
@@ -120,8 +125,6 @@ let bullets = {
   size: 0,
   ratio: 0.15/20
 };
-
-
 
 let released = true;
 let cool = 0;
@@ -132,9 +135,18 @@ let reload = {
   done: false
 };
 
-function MakeBullet(){
+function doReload(player){
+  if (!reload.done && reload.wait <= millis()){
+    player.hand = player.deck.splice(0,4);
+    console.log("drew new hand",player.hand);
+    reload.done = true;
+  }
+}
+
+function MakeBullet(player){
   if(game){
-    let card = player.hand.splice(0,1);
+    let card = player.hand.splice(0,1)[0];
+    // card = card[0];
     let vect = aim();
     // console.log(card);
     let shot;
@@ -172,14 +184,26 @@ function MakeBullet(){
       // console.log(shot.velocity);
     }
 
-    console.log(card);
-    cool = millis()+card.cool();
+    // console.log(card);
+    cool = millis()+card.cool;
 
     if(player.hand.length === 0){
       reload.wait = millis()+reload.time;
       reload.done = false;
+      console.log("empty hand, reloading");
     }
 
+  }
+}
+
+function pShoot(player){
+  if (mouseIsPressed===true){
+    if (mouseButton === LEFT && released && cool <= millis()){
+      MakeBullet(player);
+      released = false;
+    }
+  } else {
+    released = true;
   }
 }
 
@@ -193,6 +217,77 @@ function aim(){
   // console.log(vector);
   return vector;
 }
+
+
+function doBull(){
+  bullMove();
+  bullCollide();
+  bullDraw();
+}
+
+function bullDraw(){
+  let posB;
+  // console.log(bullets);
+  if (bullets.bodies.length > 0){
+    for (let shot of bullets.bodies){
+      posB = shot.position;
+      // console.log(posB);
+      fill("green");
+      ellipseMode(RADIUS);
+      circle(posB.x,posB.y,bullets.size);
+    }
+  }
+}
+function bullMove(){
+  //make cleaner in future version
+  for (let shot in bullets.bodies){
+    const vel = bullets.bodies[shot].velocity
+    // if(Matter.Vector.magnitude(vel)< bullets.info[shot].spd){
+    const cheese = (bullets.info[shot].vector.x + bullets.info[shot].vector.y)/2;
+    Matter.Body.setVelocity(bullets.bodies[shot], Matter.Vector.mult(Matter.Vector.normalise(vel), bullets.info[shot].spd*wind.size));
+
+    // }
+  }
+}
+function bullCollide(){
+  let toremove = {blanks:[],bodies:[]};
+  let shot;
+
+  // Check for collisions 
+  for (let place in bullets.bodies){
+    shot = bullets.bodies[place];
+    if (Matter.Collision.collides(shot, player.body)) {
+      console.log("Hit player");
+      toremove.bodies.push(shot);
+      toremove.blanks.push(place);
+    }else{
+      for (let obj of objects){
+        if (Matter.Collision.collides(shot, obj)) {
+          // console.log("hit something wall like");
+          bullImpact(toremove,place,shot);
+        }
+      }
+    }
+  }
+  Matter.World.remove(engine.world, toremove.bodies);
+  for (let blank of toremove.blanks){
+    bullets.bodies.splice(blank,1);
+    bullets.info.splice(blank,1);
+  }
+}
+function bullImpact(list,place,shot){
+  let info = bullets.info[place]
+  if(info.bounces === 0){
+    list.blanks.push(place);
+    list.bodies.push(shot);
+    // console.log("destroyed");
+  }else {
+    // console.log("bounced");
+    info.bounces --;
+  }
+
+}
+
 
 let wind = {
   w: 0,
@@ -218,16 +313,36 @@ function display(){
   bullets.size = bullets.ratio*small;
   // console.log(bullets.size);
   // console.log(wind.size, w, h);
-  createCanvas(wind.w, wind.h);
-  
+  createCanvas(wind.size, wind.size);
 }
 
+// use .label (in .body)
+function resize(thing){
+  let body = thing.body;
+  body.position = {x: thing.xrat*wind.size, y: thing.yrat*wind.size};
+  
+  if (thing.circle){
+    body.circleRadius = thing.srat * wind.size;
+  }
+
+}
+
+function disCircle(clr,body){
+  let pos = body.position;
+  ellipseMode(RADIUS);
+  strokeWeight(0);
+  fill(clr);
+  circle(pos.x,pos.y,body.circleRadius);
+}
+function disRect(clr,body){
+
+}
 
 let engine;
 
 let objects = [];
 
-let box2;
+let obstacles = [{xrat: 0, yrat: 0, body: null, wrat: 0.7/20, hrat: 0.7/20, circle: false}];
 let border = [];
 let thin;
 let long;
@@ -236,7 +351,6 @@ let game = false;
 
 function setup() {
   display();
-
 
   makeDeck(player,Spades);
   // console.log(player.deck);
@@ -268,18 +382,22 @@ function setup() {
   engine.world.gravity.x = 0;
   engine.world.gravity.y = 0;
 
-// chat said that changing the amount of updates per frame could help with my ethereal bullets, not sure what delta does
+  //chat said that changing the amount of updates per frame could help with my ethereal bullets, not sure what delta does
   Matter.Engine.update(engine, window.requestAnimationFrame, 50);
 
   Matter.Runner.run(engine);
 
-  player.body = Matter.Bodies.circle(spawn, spawn, player.size);
-  box2 = Matter.Bodies.rectangle(150, 150, 50, 50, {isStatic: true});
+  player.body = Matter.Bodies.circle(spawn, spawn, player.srat*wind.size);
+  console.log(player.body);
+  Matter.World.add(engine.world, [player.body]);
 
-  for (let obj of [box2]){
+  obstacles[0].body = Matter.Bodies.rectangle(150, 150, 50, 50, {isStatic: true});
+  console.log(obstacles[0].body);
+
+  for (let obj of [obstacles]){
     objects.push(obj);
   }
-  Matter.World.add(engine.world, [player.body, box2]);
+  Matter.World.add(engine.world, obstacles);
 
   for (let wall of border){
     objects.push(wall);
@@ -295,92 +413,23 @@ function draw() {
   background(30);
 
 
-  if (!reload.done && reload.wait <= millis()){
-    player.hand = player.deck.splice(0,4);
-    console.log(player.hand);
-    reload.done = true;
-  }
+  doReload(player);
 
   moveP();
-  // Update p5.js sketch based on Matter.js physics
-  let posP = player.body.position;
-  let pos2 = box2.position;
-  strokeWeight(0);
-  fill("red");
-  ellipseMode(RADIUS);
-  circle(posP.x, posP.y, player.size);
-  fill("blue");
-  rectMode(CENTER);
-  rect(pos2.x, pos2.y, 50, 50);
-
-  if (mouseIsPressed===true){
-    if (mouseButton === LEFT && released && cool <= millis()){
-      MakeBullet(Spades,3);
-      released = false;
-    }
-  } else {
-    released = true;
-  }
-
-
-  let posB;
-  // console.log(bullets);
-  if (bullets.bodies.length > 0){
-    for (let shot of bullets.bodies){
-      posB = shot.position;
-      // console.log(posB);
-      fill("green");
-      ellipseMode(RADIUS);
-      circle(posB.x,posB.y,bullets.size);
-    }
-  }
   
+  disCircle(player.clr,player.body);
   
-  //make cleaner in future version
-  for (let shot in bullets.bodies){
-    const vel = bullets.bodies[shot].velocity
-    // if(Matter.Vector.magnitude(vel)< bullets.info[shot].spd){
-      const cheese = (bullets.info[shot].vector.x + bullets.info[shot].vector.y)/2;
-      Matter.Body.setVelocity(bullets.bodies[shot], Matter.Vector.mult(Matter.Vector.normalise(vel), bullets.info[shot].spd*wind.size));
 
-    // }
-  }
+  // fill("blue");
+  // rectMode(CENTER);
+  // rect(pos2.x, pos2.y, 50, 50);
+
   
-  let toremove = {blanks:[],bodies:[]};
-  let shot;
+  pShoot(player);
 
-  // Check for collisions 
-  for (let place in bullets.bodies){
-    shot = bullets.bodies[place];
-    if (Matter.Collision.collides(shot, player.body)) {
-      console.log("Hit player");
-      toremove.bodies.push(shot);
-      toremove.blanks.push(place);
-    }else{
-      for (let obj of objects){
-        if (Matter.Collision.collides(shot, obj)) {
-          console.log("hit something wall like");
-          bullHit(toremove,place,shot);
-        }
-      }
-    }
-  }
-  Matter.World.remove(engine.world, toremove.bodies);
-  for (let blank of toremove.blanks){
-    bullets.bodies.splice(blank,1);
-    bullets.info.splice(blank,1);
-  }
+  doBull();
+  
 }
 
 
-function bullHit(list,place,shot){
-  let info = bullets.info[place]
-  if(info.bounces === 0){
-    list.blanks.push(place);
-    list.bodies.push(shot);
-  }else {
-    console.log("bounced");
-    info.bounces --;
-  }
 
-}
