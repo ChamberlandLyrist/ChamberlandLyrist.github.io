@@ -28,7 +28,6 @@ let player = {
   gun: [],
   speed: 0.1/20,
   body: null,
-  circle: true
 };
 
 let aK = 65;
@@ -148,14 +147,22 @@ function MakeBullet(player){
     let card = player.hand.splice(0,1)[0];
     // card = card[0];
     let vect = aim();
+    console.log(vect);
     // console.log(card);
     let shot;
-    let bs = bullets.size;
-    let ps = player.size;
+    let bs = bullets.ratio*wind.size;
+    // console.log(bs);
+    let ps = player.body.circleRadius;
+    // console.log(ps);
     let edge = ps + bs*2;
+    // console.log(edge);
+    let ppos = player.body.position;
+    // console.log(ppos);
 
     // let prev = player.body.position;
     // let fro = 0;
+    let sumx;
+    let sumy;
 
     for (let n = 0; n< card.bullets; n++){
       
@@ -165,7 +172,11 @@ function MakeBullet(player){
       
       // note: idk why but it needs to be bs*3.4, that should be giving way more space than it needs, but the simulation wants what it wants
       // Chat showed me how to use restitution 
-      shot = Matter.Bodies.circle(player.body.position.x+ps+vect.x*edge-bs*3.4, player.body.position.y+ps+vect.y*edge-bs*3.4, bullets.size,{restitution:5});
+
+      sumx = ppos.x+ps+vect.x*edge-bs*3.4;
+      sumy = ppos.y+ps+vect.y*edge-bs*3.4;
+      console.log(sumx,sumy);
+      shot = Matter.Bodies.circle(sumx, sumy, bs,{restitution:5});
       // console.log("player",player.body.position.x,player.body.position.y);
       // console.log(shot.position.x-bs*2,shot.position.y-bs*2);
 
@@ -175,10 +186,10 @@ function MakeBullet(player){
       bullets.bodies.push(shot);
       const cheese = (card.vector.x + card.vector.y)/2;
       Matter.World.add(engine.world, [shot]);
-      // setTimeout(() => {
-        Matter.Body.applyForce(shot, shot.position, {x: vect.x/(wind.size*100), y: vect.y/(wind.size*100)});
-        Matter.Body.setVelocity(shot, Matter.Vector.mult(Matter.Vector.normalise(shot.velocity), card.spd));
-      // }, 100); // Add a delay of 100 milliseconds
+      
+      Matter.Body.applyForce(shot, shot.position, {x: vect.x/(wind.size*100), y: vect.y/(wind.size*100)});
+      Matter.Body.setVelocity(shot, Matter.Vector.mult(Matter.Vector.normalise(shot.velocity), card.spd));
+      
       
       // console.log(shot);
       // console.log(shot.velocity);
@@ -211,7 +222,7 @@ function pShoot(player){
 function aim(){
   let start = player.body.position;
   let end = {x: mouseX, y: mouseY};
-  let reticle = {x: end.x-(start.x+player.size), y: end.y-(start.y+player.size)};
+  let reticle = {x: end.x-(start.x), y: end.y-(start.y)};
   // console.log(reticle);
   let vector = Matter.Vector.normalise(reticle);
   // console.log(vector);
@@ -253,9 +264,12 @@ function bullCollide(){
   let toremove = {blanks:[],bodies:[]};
   let shot;
 
+  // console.log("bullets:",bullets);
+
   // Check for collisions 
   for (let place in bullets.bodies){
     shot = bullets.bodies[place];
+    // console.log(shot);
     if (Matter.Collision.collides(shot, player.body)) {
       console.log("Hit player");
       toremove.bodies.push(shot);
@@ -263,6 +277,7 @@ function bullCollide(){
     }else{
       for (let obj of objects){
         if (Matter.Collision.collides(shot, obj)) {
+          // console.log(obj);
           // console.log("hit something wall like");
           bullImpact(toremove,place,shot);
         }
@@ -320,10 +335,17 @@ function display(){
 function resize(thing){
   let body = thing.body;
   body.position = {x: thing.xrat*wind.size, y: thing.yrat*wind.size};
-  
-  if (thing.circle){
+  let type = body.label;
+  if ( type === "Circle Body"){
     body.circleRadius = thing.srat * wind.size;
+  }else if(type === "Rectangle Body"){
+    let width = thing.wrat*wind.size;
+    let height = thing.hrat*wind.size;
+    Matter.Body.scale(body, width/body.bounds.max.x, height/body.bounds.max.y);
+    Matter.Body.setVertices(body, Matter.Vertices.fromPath("0 0 ${width} 0 ${width} ${hieght} 0 ${height}"));
   }
+
+  
 
 }
 
@@ -334,15 +356,19 @@ function disCircle(clr,body){
   fill(clr);
   circle(pos.x,pos.y,body.circleRadius);
 }
-function disRect(clr,body){
-
+function disRect(clr,body,info){
+  let pos = body.position;
+  rectMode(CENTER);
+  strokeWeight(0);
+  fill(clr);
+  rect(pos.x,pos.y,info.wrat*wind.size, info.hrat*wind.size);
 }
 
 let engine;
 
 let objects = [];
 
-let obstacles = [{xrat: 0, yrat: 0, body: null, wrat: 0.7/20, hrat: 0.7/20, circle: false}];
+let obstacles = [{clr: "blue", xrat: 2/20, yrat: 2/20, body: null, wrat: 0.7/20, hrat: 0.7/20}];
 let border = [];
 let thin;
 let long;
@@ -388,11 +414,13 @@ function setup() {
   Matter.Runner.run(engine);
 
   player.body = Matter.Bodies.circle(spawn, spawn, player.srat*wind.size);
-  console.log(player.body);
+  // console.log(player.body);
   Matter.World.add(engine.world, [player.body]);
 
-  obstacles[0].body = Matter.Bodies.rectangle(150, 150, 50, 50, {isStatic: true});
-  console.log(obstacles[0].body);
+  for (let shape of obstacles){
+    shape.body = Matter.Bodies.rectangle(shape.xrat*wind.size, shape.yrat*wind.size, shape.wrat*wind.size, shape.hrat*wind.size, {isStatic: true});
+    console.log(shape.body);
+  }
 
   for (let obj of [obstacles]){
     objects.push(obj);
@@ -402,7 +430,7 @@ function setup() {
   for (let wall of border){
     objects.push(wall);
   }
-  Matter.World.add(engine.world, border)
+  Matter.World.add(engine.world, border);
 
   game = true;
 }
@@ -415,10 +443,10 @@ function draw() {
 
   doReload(player);
 
-  moveP();
+  moveP(player);
   
   disCircle(player.clr,player.body);
-  
+  disRect(obstacles[0].clr,obstacles[0].body, obstacles[0]);
 
   // fill("blue");
   // rectMode(CENTER);
