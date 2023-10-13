@@ -89,6 +89,7 @@ function moveP(player){
 // assume spd is in units per second
 function Spades(n){
   this.variable = function(n){
+    if (n>10){n = 10;}
     return n+1;
   };
   this.dmg = this.variable(n);
@@ -147,12 +148,12 @@ function doReload(player){
 function MakeBullet(player){
   if(game){
     let card = player.hand.splice(0,1)[0];
-    let shot = card.body;
+    let shot;
     // card = card[0];
     let vect = aim();
     console.log(vect);
     // console.log(card);
-    let bs = bullets.ratio*wind.size;
+    let bs = card.srat*wind.size;
     // console.log(bs);
     let ps = player.body.circleRadius;
     // console.log(ps);
@@ -176,7 +177,10 @@ function MakeBullet(player){
       sumx = ppos.x+ps+vect.x*edge-bs*3.4;
       sumy = ppos.y+ps+vect.y*edge-bs*3.4;
       // console.log(sumx,sumy);
-      shot = Matter.Bodies.circle(sumx, sumy, bs,{restitution:5});
+      // console.log(card,body);
+      card.body = Matter.Bodies.circle(sumx, sumy, bs,{restitution:5});
+      shot = card.body;
+      console.log(shot);
       card.xrat = shot.position.x / wind.size;
       card.yrat = shot.position.y / wind.size;
       bullets.bulls.push(card);
@@ -277,6 +281,7 @@ function bullCollide(){
       toremove.blanks.push(place);
     }else{
       for (let obj of objects){
+        console.log(obj);
         if (Matter.Collision.collides(shot.body, obj)) {
           // console.log(obj);
           // console.log("hit something wall like");
@@ -302,6 +307,10 @@ function bullImpact(list,place,shot){
   }
 
 }
+let cheese = {
+  blanks: [],
+  bodies: []
+};
 function bullRemove(list){
   let bods = [];
   for(let space in list.blanks){
@@ -345,6 +354,7 @@ function display(){
 
 // use .label (in .body)
 function resize(thing){
+  // console.log(thing);
   let body = thing.body;
   body.position = {x: thing.xrat*wind.size, y: thing.yrat*wind.size};
   let type = body.label;
@@ -362,6 +372,7 @@ function resize(thing){
 }
 
 function disCircle(clr,body){
+  // console.log(body);
   let pos = body.position;
   ellipseMode(RADIUS);
   strokeWeight(0);
@@ -381,8 +392,12 @@ let engine;
 let objects = [];
 
 let obstacles = {
-  shapes: [{clr: "blue", xrat: 2/20, yrat: 2/20, body: null, wrat: 1/20, hrat: 1/20}],
-  base: {clr: "blue", xrat: 0, yrat: 0, body: null, wrat: 0, hrat: 0}
+  shapes: [{clr: "blue", xrat: 2/20, yrat: 2/20, body: 0, wrat: 1/20, hrat: 1/20}],
+  base: {clr: "blue", xrat: 0, yrat: 0, body: 0, wrat: 0, hrat: 0}
+};
+let spawn = {
+  x:10/20, 
+  y:10/20
 };
 
 let border = [];
@@ -392,17 +407,23 @@ let long;
 let game = false;
 
 function setup() {
-  display();
+  let w = windowWidth;
+  let h = windowHeight;
+  wind.w = w;
+  wind.h = h;
+  let small;
+  if (w<=h){
+    small = w;
+  }
+  else{
+    small = h;
+  }
+  wind.size = small;
+  console.log(typeof wind.size, wind.size);
 
   makeDeck(player,Spades);
   // console.log(player.deck);
   prepareDeck(player);
-  
-
-
-
-  // make {x:, y:}
-  let spawn = wind.size/2;
 
   // wrote this myself but it was mostly a change values kind of deal
   thin = wind.size/5;
@@ -429,18 +450,24 @@ function setup() {
 
   Matter.Runner.run(engine);
 
-  player.body = Matter.Bodies.circle(spawn, spawn, player.srat*wind.size);
+  player.body = Matter.Bodies.circle(spawn.x*wind.size, spawn.y*wind.size, player.srat*wind.size);
   // console.log(player.body);
+  player.xrat = player.body.position.x/wind.size;
+  player.yrat = player.body.position.y/wind.size;
   Matter.World.add(engine.world, [player.body]);
 
   for (let shape of obstacles.shapes){
-    shape.body = Matter.Bodies.rectangle(shape.xrat*wind.size, shape.yrat*wind.size, shape.wrat*wind.size, shape.hrat*wind.size, {isStatic: true});
+    console.log(typeof shape.xrat, shape.xrat);
+    console.log(typeof (shape.xrat*wind.size), shape.xrat*wind.size);
+    shape.body = Matter.Bodies.rectangle(shape.xrat*wind.size,shape.yrat*wind.size,shape.wrat*wind.size,shape.hrat*wind.size,{isStatic: true});
     console.log(shape.body);
     Matter.World.add(engine.world, shape.body);
   }
 
-  for (let obj of [obstacles]){
-    objects.push(obj);
+  // console.log(obstacles.shapes);
+  for (let obj of obstacles.shapes){
+    // console.log(obj.body);
+    objects.push(obj.body);
   }
 
   for (let wall of border){
@@ -449,6 +476,8 @@ function setup() {
   Matter.World.add(engine.world, border);
 
   game = true;
+
+  display();
 }
 
 
