@@ -4,8 +4,6 @@
 // 
 
 
-// I couldn't get window resizing to work properly in the earliest simplest versions of this code so I will revisit it in later versions, 
-// for now there do be a bit of spaghetti code that doesn't need to be there.
 
 // NOTE:
 // I couldn't get collisions working: so anything that uses Matter.js stuff was from ChatGPT, UNLESS OTHERWISE SPECIFIED
@@ -106,6 +104,22 @@ function Spades(n){
   this.body = null;
   this.srat = 0.15/20;
   this.clr =  "green";
+  this.rank = n;
+}
+
+function disCard(spot){
+  rectMode(CENTER);
+  stroke(0);
+  strokeWeight(2);
+  // fill(200);
+  let space = wind.h/5;
+  console.log(space);
+  // let y = 0;
+  // for (let n = 1; n<=spot; n++){
+  //   y+= space;
+  //   console.log(y);
+  // }
+  rect(uiEdge.maxX/2, y, 4/20 *wind.size, 6/20 *wind.size);
 }
 
 
@@ -139,15 +153,15 @@ let reload = {
 
 function doReload(player){
   if (!reload.done && reload.wait <= millis()){
-    player.hand = player.deck.splice(0,4);
-    console.log("drew new hand",player.hand);
+    player.gun = player.deck.splice(0,4);
+    console.log("drew new hand",player.gun);
     reload.done = true;
   }
 }
 
 function MakeBullet(player){
   if(game){
-    let card = player.hand.splice(0,1)[0];
+    let card = player.gun.splice(0,1)[0];
     let shot;
     // card = card[0];
     let vect = aim();
@@ -326,13 +340,13 @@ let wind = {
   size: 0
 };
 
-let wide = 30;
+let wide = 40;
 let tall = 20;
 function reWind(){
   let w = windowWidth;
   let h = windowHeight;
 
-  if(w/h === wide/tall){
+  if(w/h !== wide/tall){
     if (w/wide < h/tall){
       h = w/wide*tall;
     }
@@ -423,13 +437,13 @@ let long;
 let uiEdge = {
   maxX: null,
   maxY: null,
-  xrat: 10/wide,
+  xrat: 1/4,
   yrat: 0,
 };
 function reUI(){
+  // uiEdge.xrat = wind.w-wind.h;
   uiEdge.maxX = wind.w*uiEdge.xrat;
   uiEdge.maxY = wind.h*uiEdge.yrat;
-  uiEdge.xrat = wind.w-wind.h;
 }
 
 
@@ -515,20 +529,32 @@ function draw() {
 
   doReload(player);
 
+
+  rectMode(CORNER);
+  strokeWeight(0);
+  fill("orange");
+  // console.log(wind.h, wind.w);
+  rect(0,0,uiEdge.maxX,wind.h);
+  // rect(0,0,wind.w,uiEdge.maxY);
+  rect(uiEdge.maxX*3,0,wind.w,wind.h);
+  // rect(0,uiEdge.maxY*3,wind.w,wind.h);
+
+  let f = 20;
+  // console.log(player.gun);
+  for (let place in player.gun){
+    // console.log("yes");
+    fill(f);
+    disCard(place+1);
+    f += 75;
+  }
+
   moveP(player);
   
   disCircle(player.clr,player.body);
   // disRect(obstacles.shapes[0]);
 
 
-  rectMode(CORNER);
-  strokeWeight(0);
-  fill("white");
-  // console.log(wind.h, wind.w);
-  rect(0,0,uiEdge.maxX,wind.h);
-  rect(0,0,wind.w,uiEdge.maxY);
-  // rect(thin,0,wind.w,wind.h);
-  // rect()
+  
 
 
   
