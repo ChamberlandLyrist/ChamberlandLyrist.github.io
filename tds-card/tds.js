@@ -326,21 +326,36 @@ let wind = {
   size: 0
 };
 
-
-function display(){
+let wide = 30;
+let tall = 20;
+function reWind(){
   let w = windowWidth;
   let h = windowHeight;
+
+  if(w/h === wide/tall){
+    if (w/wide < h/tall){
+      h = w/wide*tall;
+    }
+    else{
+      w = h/tall*wide;
+    }
+  }
+  console.log(w,h);
   wind.w = w;
   wind.h = h;
-  let small;
-  if (w<=h){
-    small = w;
-  }
-  else{
-    small = h;
-  }
-  wind.size = small;
+  wind.size = h;
+  createCanvas(wind.w, wind.h);
+}
+
+function display(){
+  reWind();
+
+  reUI();
+
   resize(player);
+  for (let wall of border){
+    resize(wall);
+  }
   for (let shape of obstacles.shapes){
     resize(shape);
   }
@@ -349,18 +364,19 @@ function display(){
   }
   // console.log(bullets.size);
   // console.log(wind.size, w, h);
-  createCanvas(wind.size, wind.size);
+  
 }
 
 // use .label (in .body)
 function resize(thing){
   // console.log(thing);
   let body = thing.body;
-  body.position = {x: thing.xrat*wind.size, y: thing.yrat*wind.size};
+  body.position = {x: uiEdge.maxX+thing.xrat*wind.size, y: thing.yrat*wind.size};
   let type = body.label;
   if ( type === "Circle Body"){
     body.circleRadius = thing.srat * wind.size;
-  }else if(type === "Rectangle Body"){
+  }
+  else if(type === "Rectangle Body"){
     let width = thing.wrat*wind.size;
     let height = thing.hrat*wind.size;
     Matter.Body.scale(body, width/body.bounds.max.x, height/body.bounds.max.y);
@@ -404,22 +420,24 @@ let border = [];
 let thin;
 let long;
 
+let uiEdge = {
+  maxX: null,
+  maxY: null,
+  xrat: 10/wide,
+  yrat: 0,
+};
+function reUI(){
+  uiEdge.maxX = wind.w*uiEdge.xrat;
+  uiEdge.maxY = wind.h*uiEdge.yrat;
+  uiEdge.xrat = wind.w-wind.h;
+}
+
+
 let game = false;
 
 function setup() {
-  let w = windowWidth;
-  let h = windowHeight;
-  wind.w = w;
-  wind.h = h;
-  let small;
-  if (w<=h){
-    small = w;
-  }
-  else{
-    small = h;
-  }
-  wind.size = small;
-  console.log(typeof wind.size, wind.size);
+  reWind();
+  reUI();
 
   makeDeck(player,Spades);
   // console.log(player.deck);
@@ -428,14 +446,17 @@ function setup() {
   // wrote this myself but it was mostly a change values kind of deal
   thin = wind.size/5;
   long = wind.size;
+  let x = uiEdge.maxX;
+  let y = uiEdge.maxY;
   // north
-  border.push(Matter.Bodies.rectangle(0+wind.size/2,0-thin/2,long,thin, {isStatic:true}));
+  // console.log(typeof (0+wind.size/2));
+  border.push(Matter.Bodies.rectangle(x+wind.size/2,y-thin/2,long,thin, {isStatic:true}));
   // east
-  border.push(Matter.Bodies.rectangle(0+wind.size+thin/2,0+wind.size/2,thin,long,{isStatic:true}));
+  border.push(Matter.Bodies.rectangle(x+wind.size+thin/2,y+wind.size/2,thin,long,{isStatic:true}));
   // south
-  border.push(Matter.Bodies.rectangle(0+wind.size/2,0+wind.size+thin/2,long,thin,{isStatic:true}));
+  border.push(Matter.Bodies.rectangle(x+wind.size/2,y+wind.size+thin/2,long,thin,{isStatic:true}));
   // west
-  border.push(Matter.Bodies.rectangle(0-thin/2,0+wind.size/2,thin,long, {isStatic:true}));
+  border.push(Matter.Bodies.rectangle(x-thin/2,y+wind.size/2,thin,long, {isStatic:true}));
 
 
   //I learned about a little thing called restitution and that it makes things bouncy...
@@ -450,25 +471,31 @@ function setup() {
 
   Matter.Runner.run(engine);
 
-  player.body = Matter.Bodies.circle(spawn.x*wind.size, spawn.y*wind.size, player.srat*wind.size);
+  player.body = Matter.Bodies.circle(x + spawn.x*wind.size, y + spawn.y*wind.size, player.srat*wind.size);
   // console.log(player.body);
   player.xrat = player.body.position.x/wind.size;
   player.yrat = player.body.position.y/wind.size;
   Matter.World.add(engine.world, [player.body]);
 
-  for (let shape of obstacles.shapes){
-    console.log(typeof shape.xrat, shape.xrat);
-    console.log(typeof (shape.xrat*wind.size), shape.xrat*wind.size);
-    shape.body = Matter.Bodies.rectangle(shape.xrat*wind.size,shape.yrat*wind.size,shape.wrat*wind.size,shape.hrat*wind.size,{isStatic: true});
-    console.log(shape.body);
-    Matter.World.add(engine.world, shape.body);
-  }
 
-  // console.log(obstacles.shapes);
-  for (let obj of obstacles.shapes){
-    // console.log(obj.body);
-    objects.push(obj.body);
-  }
+  // // console.log(typeof wind.size, wind.size);
+  // for (let shape of obstacles.shapes){
+  //   // console.log(typeof shape.xrat, shape.xrat);
+  //   // console.log(typeof (shape.xrat*wind.size), shape.xrat*wind.size);
+  //   // console.log(typeof (shape.yrat*wind.size), shape.yrat*wind.size);
+  //   // console.log(typeof (shape.wrat*wind.size), shape.wrat*wind.size);
+  //   // console.log(typeof (shape.hrat*wind.size), shape.hrat*wind.size);
+
+
+  //   shape.body = Matter.Bodies.rectangle((shape.xrat*wind.size),(shape.yrat*wind.size),(shape.wrat*wind.size),(shape.hrat*wind.size), {isStatic:true});
+  //   console.log(shape.body);
+  //   Matter.World.add(engine.world, shape.body);
+  // }
+  // // console.log(obstacles.shapes);
+  // for (let obj of obstacles.shapes){
+  //   // console.log(obj.body);
+  //   objects.push(obj.body);
+  // }
 
   for (let wall of border){
     objects.push(wall);
@@ -477,7 +504,7 @@ function setup() {
 
   game = true;
 
-  display();
+  // display();
 }
 
 
@@ -491,11 +518,18 @@ function draw() {
   moveP(player);
   
   disCircle(player.clr,player.body);
-  disRect(obstacles.shapes[0]);
+  // disRect(obstacles.shapes[0]);
 
-  // fill("blue");
-  // rectMode(CENTER);
-  // rect(pos2.x, pos2.y, 50, 50);
+
+  rectMode(CORNER);
+  strokeWeight(0);
+  fill("white");
+  // console.log(wind.h, wind.w);
+  rect(0,0,uiEdge.maxX,wind.h);
+  rect(0,0,wind.w,uiEdge.maxY);
+  // rect(thin,0,wind.w,wind.h);
+  // rect()
+
 
   
   pShoot(player);
