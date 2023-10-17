@@ -496,6 +496,10 @@ function setup() {
   Matter.World.add(engine.world, [player.body]);
 
 
+  let cheese = obstacles.shapes[0];
+  obstacles.shapes[0].body = Matter.body.rectangle(x + cheese.xrat*wind.size, y + cheese.yrat*wind.size, cheese.wrat*wind.size, cheese.hrat*wind.size);
+  console.log(cheese.body);
+
   // // console.log(typeof wind.size, wind.size);
   // for (let shape of obstacles.shapes){
   //   // console.log(typeof shape.xrat, shape.xrat);

@@ -5,6 +5,8 @@
 
 -[Ball Array](ball-array)
 
+-[Souns and Images](sound-image)
+
 ## Projects...
 
 - [Int Scene: Go Fish v1](go-fish)
