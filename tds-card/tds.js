@@ -123,7 +123,7 @@ function disCard(spot){
   let y = margin *spot/3;
   // fill(200);
   // console.log(y, wind.size);
-  rect(uiEdge.maxX/2, wind.h -(y+margin*3), w, h);
+  rect(uiEdge.maxX/2, 0 - (y-margin*5), w, h);
 }
 
 
@@ -510,23 +510,7 @@ function setup() {
     objects.push(obj.body);
   }
   
-
-
-  // // console.log(typeof wind.size, wind.size);
-  // for (let shape of obstacles.shapes){
-  //   // console.log(typeof shape.xrat, shape.xrat);
-  //   // console.log(typeof (shape.xrat*wind.size), shape.xrat*wind.size);
-  //   // console.log(typeof (shape.yrat*wind.size), shape.yrat*wind.size);
-  //   // console.log(typeof (shape.wrat*wind.size), shape.wrat*wind.size);
-  //   // console.log(typeof (shape.hrat*wind.size), shape.hrat*wind.size);
-
-
-  //   shape.body = Matter.Bodies.rectangle((shape.xrat*wind.size),(shape.yrat*wind.size),(shape.wrat*wind.size),(shape.hrat*wind.size), {isStatic:true});
-  //   console.log(shape.body);
-  //   Matter.World.add(engine.world, shape.body);
-  // }
   
-
   for (let wall of border){
     objects.push(wall);
   }
@@ -561,7 +545,7 @@ function draw() {
   for (let place in player.gun){
     // console.log("yes");
     fill(f);
-    disCard(place+1,marg);
+    disCard(player.gun.length-(place+1),marg);
     f += 75;
   }
 
