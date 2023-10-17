@@ -107,19 +107,23 @@ function Spades(n){
   this.rank = n;
 }
 
+let card = {
+  wrat: 4/20,
+  hrat: 6/20,
+  mrat: 1/20
+};
+
 function disCard(spot){
   rectMode(CENTER);
   stroke(0);
   strokeWeight(2);
+  let w = card.wrat *wind.size;
+  let h = card.hrat *wind.size;
+  let margin = card.mrat*wind.size;
+  let y = margin *spot/3;
   // fill(200);
-  let space = wind.h/5;
-  console.log(space);
-  // let y = 0;
-  // for (let n = 1; n<=spot; n++){
-  //   y+= space;
-  //   console.log(y);
-  // }
-  rect(uiEdge.maxX/2, y, 4/20 *wind.size, 6/20 *wind.size);
+  console.log(y, wind.size);
+  rect(uiEdge.maxX/2, wind.h -(y+margin*3), w, h);
 }
 
 
@@ -540,11 +544,12 @@ function draw() {
   // rect(0,uiEdge.maxY*3,wind.w,wind.h);
 
   let f = 20;
+  let marg = 20;
   // console.log(player.gun);
   for (let place in player.gun){
     // console.log("yes");
     fill(f);
-    disCard(place+1);
+    disCard(place+1,marg);
     f += 75;
   }
 
