@@ -122,7 +122,7 @@ function disCard(spot){
   let margin = card.mrat*wind.size;
   let y = margin *spot/3;
   // fill(200);
-  console.log(y, wind.size);
+  // console.log(y, wind.size);
   rect(uiEdge.maxX/2, wind.h -(y+margin*3), w, h);
 }
 
@@ -496,9 +496,20 @@ function setup() {
   Matter.World.add(engine.world, [player.body]);
 
 
-  let cheese = obstacles.shapes[0];
-  obstacles.shapes[0].body = Matter.body.rectangle(x + cheese.xrat*wind.size, y + cheese.yrat*wind.size, cheese.wrat*wind.size, cheese.hrat*wind.size);
-  console.log(cheese.body);
+  let shape;
+  for (let num in obstacles.shapes){
+    shape = obstacles.shapes[num];
+    obstacles.shapes[0].body = Matter.Bodies.rectangle(x + shape.xrat*wind.size, y + shape.yrat*wind.size, shape.wrat*wind.size, shape.hrat*wind.size);
+    console.log(shape.body);
+    Matter.World
+  }
+  // console.log(obstacles.shapes);
+  for (let obj of obstacles.shapes){
+    // console.log(obj.body);
+    objects.push(obj.body);
+  }
+  
+
 
   // // console.log(typeof wind.size, wind.size);
   // for (let shape of obstacles.shapes){
@@ -513,11 +524,7 @@ function setup() {
   //   console.log(shape.body);
   //   Matter.World.add(engine.world, shape.body);
   // }
-  // // console.log(obstacles.shapes);
-  // for (let obj of obstacles.shapes){
-  //   // console.log(obj.body);
-  //   objects.push(obj.body);
-  // }
+  
 
   for (let wall of border){
     objects.push(wall);

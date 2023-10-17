@@ -6,6 +6,9 @@ let meow;
 function preload(){
   cat = loadImage("catto.png");
   meow = loadSound("Meow.ogg");
+
+  // 1 louder, decimals quieter
+  meow.setVolume(0.5);
 }
 
 function setup() {
