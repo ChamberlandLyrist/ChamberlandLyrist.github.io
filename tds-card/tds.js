@@ -33,7 +33,7 @@ let dK = 68;
 let wK = 87;
 let sK = 83;
 
-let maxSpeed = 5;
+let maxSpeed = 0.05/20;
 
 function moveP(player){
 
@@ -67,11 +67,11 @@ function moveP(player){
   const velocity1 = player.body.velocity;
   const speed1 = Matter.Vector.magnitude(velocity1);
   if(a||d||w||s){
-    if (speed1 > maxSpeed) {
+    if (speed1 > maxSpeed*wind.size) {
       Matter.Body.setVelocity(body, Matter.Vector.mult(Matter.Vector.normalise(velocity1), maxSpeed));
     }
   }else if(speed1 > 0.1) {
-    Matter.Body.setVelocity(body, Matter.Vector.mult(Matter.Vector.normalise(velocity1), 0.01));
+    Matter.Body.setVelocity(body, Matter.Vector.mult(Matter.Vector.normalise(velocity1), 0));
   }
 
   player.xrat = pos.x / wind.size;
@@ -222,7 +222,7 @@ function MakeBullet(player){
     // console.log(card);
     cool = millis()+card.cool;
 
-    if(player.hand.length === 0){
+    if(player.gun.length === 0){
       reload.wait = millis()+reload.time;
       reload.done = false;
       console.log("empty hand, reloading");
@@ -274,11 +274,12 @@ function bullDraw(){
 }
 function bullMove(){
   //make cleaner in future version
-  for (let shot in bullets.bodies){
-    const vel = bullets.bodies[shot].velocity
+  let b = bullets.bulls;
+  for (let shot in b){
+    const vel = b[shot].body.velocity;
     // if(Matter.Vector.magnitude(vel)< bullets.info[shot].spd){
-    const cheese = (bullets.info[shot].vector.x + bullets.info[shot].vector.y)/2;
-    Matter.Body.setVelocity(bullets.bodies[shot], Matter.Vector.mult(Matter.Vector.normalise(vel), bullets.info[shot].spd*wind.size));
+    const cheese = (b[shot].vector.x + b[shot].vector.y)/2;
+    Matter.Body.setVelocity(b[shot].body, Matter.Vector.mult(Matter.Vector.normalise(vel), b[shot].spd*wind.size));
 
     // }
   }
@@ -310,8 +311,8 @@ function bullCollide(){
   }
   Matter.World.remove(engine.world, toremove.bodies);
   for (let blank of toremove.blanks){
-    bullets.bodies.splice(blank,1);
-    bullets.info.splice(blank,1);
+    bullets.bulls.splice(blank,1);
+    
   }
 }
 function bullImpact(list,place,shot){
@@ -499,9 +500,9 @@ function setup() {
   let shape;
   for (let num in obstacles.shapes){
     shape = obstacles.shapes[num];
-    obstacles.shapes[0].body = Matter.Bodies.rectangle(x + shape.xrat*wind.size, y + shape.yrat*wind.size, shape.wrat*wind.size, shape.hrat*wind.size);
+    obstacles.shapes[0].body = Matter.Bodies.rectangle(x + shape.xrat*wind.size, y + shape.yrat*wind.size, shape.wrat*wind.size, shape.hrat*wind.size, {isStatic: true});
     console.log(shape.body);
-    Matter.World
+    Matter.World.add(engine.world, shape.body);
   }
   // console.log(obstacles.shapes);
   for (let obj of obstacles.shapes){
@@ -567,14 +568,17 @@ function draw() {
   moveP(player);
   
   disCircle(player.clr,player.body);
-  // disRect(obstacles.shapes[0]);
+  for(let shape of obstacles.shapes){
+    disRect(shape);
+  }
 
 
   
 
 
-  
-  pShoot(player);
+  if (reload.done){
+    pShoot(player);
+  }
 
   doBull();
   
