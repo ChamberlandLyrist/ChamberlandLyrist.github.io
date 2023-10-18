@@ -196,7 +196,7 @@ function MakeBullet(player){
       sumy = ppos.y+ps+vect.y*edge-bs*3.4;
       // console.log(sumx,sumy);
       // console.log(card,body);
-      card.body = Matter.Bodies.circle(sumx, sumy, bs,{restitution:5});
+      card.body = Matter.Bodies.circle(sumx, sumy, bs,{restitution:1});
       shot = card.body;
       console.log(shot);
       card.xrat = shot.position.x / wind.size;
@@ -438,14 +438,19 @@ let thisxrat = 2/20;
 let thisyrat = 2/20;
 let thiswrat = 1/20;
 let thishrat = 1/20;
-for (let xflip of state){
-  for (let yflip of state){
-    obstacles.shapes.push(structuredClone(obstacles.base));
-    obstacles.shapes[obstacles.shapes.length-1].xrat = Math.abs(xflip - thisxrat);
-    obstacles.shapes[obstacles.shapes.length-1].yrat = Math.abs(yflip - thisyrat);
-    obstacles.shapes[obstacles.shapes.length-1].wrat = thiswrat;
-    obstacles.shapes[obstacles.shapes.length-1].hrat = thishrat;
+let siderat = [{x:2/20, y:4/20}, {x:4/20,y:2/20}, {x:6/20, y:6/20}];
+for (let rat of siderat){
+  thisyrat = rat.y;
+  thisxrat = rat.x;
+  for (let xflip of state){
+    for (let yflip of state){
+      obstacles.shapes.push(structuredClone(obstacles.base));
+      obstacles.shapes[obstacles.shapes.length-1].xrat = Math.abs(xflip - thisxrat);
+      obstacles.shapes[obstacles.shapes.length-1].yrat = Math.abs(yflip - thisyrat);
+      obstacles.shapes[obstacles.shapes.length-1].wrat = thiswrat;
+      obstacles.shapes[obstacles.shapes.length-1].hrat = thishrat;
     // console.log(obstacles.shapes);
+    }
   }
 }
 
