@@ -300,7 +300,7 @@ function bullCollide(){
       toremove.blanks.push(place);
     }else{
       for (let obj of objects){
-        console.log(obj);
+        // console.log(obj);
         if (Matter.Collision.collides(shot.body, obj)) {
           // console.log(obj);
           // console.log("hit something wall like");
@@ -419,6 +419,7 @@ function disRect(info){
   rectMode(CENTER);
   strokeWeight(0);
   fill(info.clr);
+  // console.log("pos:",pos);
   rect(pos.x,pos.y,info.wrat*wind.size, info.hrat*wind.size);
 }
 
@@ -427,9 +428,28 @@ let engine;
 let objects = [];
 
 let obstacles = {
-  shapes: [{clr: "blue", xrat: 2/20, yrat: 2/20, body: 0, wrat: 1/20, hrat: 1/20}],
+  shapes: [],
   base: {clr: "blue", xrat: 0, yrat: 0, body: 0, wrat: 0, hrat: 0}
 };
+
+// {clr: "blue", xrat: 2/20, yrat: 2/20, body: 0, wrat: 1/20, hrat: 1/20}
+let state = [0, 1];
+let thisxrat = 2/20;
+let thisyrat = 2/20;
+let thiswrat = 1/20;
+let thishrat = 1/20;
+for (let xflip of state){
+  for (let yflip of state){
+    obstacles.shapes.push(structuredClone(obstacles.base));
+    obstacles.shapes[obstacles.shapes.length-1].xrat = Math.abs(xflip - thisxrat);
+    obstacles.shapes[obstacles.shapes.length-1].yrat = Math.abs(yflip - thisyrat);
+    obstacles.shapes[obstacles.shapes.length-1].wrat = thiswrat;
+    obstacles.shapes[obstacles.shapes.length-1].hrat = thishrat;
+    // console.log(obstacles.shapes);
+  }
+}
+
+
 let spawn = {
   x:10/20, 
   y:10/20
@@ -453,6 +473,14 @@ function reUI(){
 
 
 let game = false;
+
+function makeRectbody(shape){
+  let x = uiEdge.maxX;
+  let y = uiEdge.maxY;
+  let bod = Matter.Bodies.rectangle(x + shape.xrat*wind.size, y + shape.yrat*wind.size, shape.wrat*wind.size, shape.hrat*wind.size, {isStatic: true});
+  // console.log("bod:", bod);
+  return bod;
+}
 
 function setup() {
   reWind();
@@ -498,15 +526,17 @@ function setup() {
 
 
   let shape;
+  console.log(obstacles.shapes);
   for (let num in obstacles.shapes){
     shape = obstacles.shapes[num];
-    obstacles.shapes[0].body = Matter.Bodies.rectangle(x + shape.xrat*wind.size, y + shape.yrat*wind.size, shape.wrat*wind.size, shape.hrat*wind.size, {isStatic: true});
-    console.log(shape.body);
-    Matter.World.add(engine.world, shape.body);
+    obstacles.shapes[num].body = makeRectbody(shape);
+    // console.log(shape.body);
+    
   }
   // console.log(obstacles.shapes);
   for (let obj of obstacles.shapes){
     // console.log(obj.body);
+    Matter.World.add(engine.world, obj.body);
     objects.push(obj.body);
   }
   
@@ -527,7 +557,9 @@ function draw() {
   background(30);
 
 
-  doReload(player);
+  if (player.reserves.length >=4){
+    doReload(player);
+  }
 
 
   rectMode(CORNER);
@@ -553,6 +585,7 @@ function draw() {
   
   disCircle(player.clr,player.body);
   for(let shape of obstacles.shapes){
+    // console.log(shape);
     disRect(shape);
   }
 
