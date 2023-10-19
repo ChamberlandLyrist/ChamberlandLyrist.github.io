@@ -87,12 +87,20 @@ function moveP(player){
 // assume spd is in units per second
 function Spades(n){
   this.variable = function(n){
-    if (n>10){n = 10;}
+    if (n>10){
+      n = 10;
+    }
     return n+1;
   };
   this.dmg = this.variable(n);
   this.range = {full:6/20, max: 6/20+2/20};
-  this.travel = 0;
+  this.dist = function(){
+    return millis()+1000*(6/20);
+  };
+  this.toc = function(){
+    return millis();
+  };
+  this.prev = {x:0, y:0};
   this.spd = 0.5/20;
   this.bounces = 2;
   // cool is in millis
@@ -166,6 +174,7 @@ function doReload(player){
 function MakeBullet(player){
   if(game){
     let card = player.gun.splice(0,1)[0];
+    console.log("made:",card);
     let shot;
     // card = card[0];
     let vect = aim();
@@ -189,11 +198,12 @@ function MakeBullet(player){
       
       card.vector = vect;
       
-      // note: idk why but it needs to be bs*3.4, that should be giving way more space than it needs, but the simulation wants what it wants
+      // note: idk why but it needs to be -bs*3 , that should be giving way more space than it needs, but the simulation wants what it wants
       // Chat showed me how to use restitution 
 
-      sumx = ppos.x+ps+vect.x*edge-bs*3.4;
-      sumy = ppos.y+ps+vect.y*edge-bs*3.4;
+      sumx = ppos.x+ps+vect.x*edge-bs*3;
+      sumy = ppos.y+ps+vect.y*edge-bs*3;
+      card.prev = {x:sumx, y: sumy};
       // console.log(sumx,sumy);
       // console.log(card,body);
       card.body = Matter.Bodies.circle(sumx, sumy, bs,{restitution:1});
@@ -258,7 +268,6 @@ function doBull(){
   bullMove();
   bullCollide();
   bullDraw();
-  bullRemove(cheese);
 }
 
 function bullDraw(){
@@ -272,20 +281,28 @@ function bullDraw(){
     }
   }
 }
+let toremove = {blanks:[],bodies:[]};
 function bullMove(){
   //make cleaner in future version
   let b = bullets.bulls;
+  let last;
+  let now;
+  let travel;
   for (let shot in b){
     const vel = b[shot].body.velocity;
+    bullfall(b[shot],toremove,shot);
     // if(Matter.Vector.magnitude(vel)< bullets.info[shot].spd){
     const cheese = (b[shot].vector.x + b[shot].vector.y)/2;
     Matter.Body.setVelocity(b[shot].body, Matter.Vector.mult(Matter.Vector.normalise(vel), b[shot].spd*wind.size));
+    last = b[shot].prev;
+    now = b[shot].body.position;
+    travel = dist(last.x, last.y, now.x, now.y);
+    console.log(travel, millis()-b[shot].toc);
 
     // }
   }
 }
 function bullCollide(){
-  let toremove = {blanks:[],bodies:[]};
   let shot;
 
   // console.log("bullets:",bullets);
@@ -314,6 +331,7 @@ function bullCollide(){
     bullets.bulls.splice(blank,1);
     
   }
+  toremove = {blanks:[],bodies:[]};
 }
 function bullImpact(list,place,shot){
   if(shot.bounces === 0){
@@ -330,13 +348,29 @@ let cheese = {
   blanks: [],
   bodies: []
 };
-function bullRemove(list){
-  let bods = [];
-  for(let space in list.blanks){
-    bods.push(bullets.bulls[space].body);
-    bullets.bulls.splice(list.blanks[space], 1);
+
+
+function bullfall(bull, list, place){
+  // let last = bull.prev;
+  // let now = bull.body.position;
+  // let moved = dist(last.x, last.y, now.x, now.y);
+  // bull.travel += moved/wind.size;
+  // if ()
+  if (millis()>=bull.dist){
+    console.log("too much");
+    let fall = bull.spd*1000;
+    if(millis()<=bull.dist+fall){
+      bull.dmg = bull.dmg / (2 / (fall / bull.dist+fall-millis()));
+    }else{
+      bull.dmg = 0;
+      list.bodies.push(bull.body);
+      list.blanks.push(bullets.bulls.indexOf(bull));
+      console.log("to far");
+    }
+    
   }
-  Matter.World.add(engine.world, bods);
+  
+
 }
 
 let wind = {
