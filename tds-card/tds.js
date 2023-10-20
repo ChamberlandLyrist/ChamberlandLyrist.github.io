@@ -1,17 +1,17 @@
 
 
 // Top Down Shooter Skeleton Code
-// 
+// oct 20th
+// Lyra Chamberlin (sher/her)
+
+// use WASD to move around your guy(red circle), and left click to shoot a ball towards the mouse
+// bullets will bounce twice before disapearing on the third collision(always disapears on collision w player)
+// the hand of cards on the left of the screen 
 
 
-
-// NOTE:
-// I couldn't get collisions working: so anything that uses Matter.js stuff was from ChatGPT, UNLESS OTHERWISE SPECIFIED
-
-// Update: I am omewhat starting to understand Matter.js, will continue to ask Chat for info on functions and such tho
+// Extra for experts:
 
 
-// Note: writing this code was a complete scene, i can give the full story in person but i just want to be done with this for today...
 
 
 // assume that all sizes are for a screen of 20 units
