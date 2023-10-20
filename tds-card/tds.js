@@ -6,11 +6,11 @@
 
 // use WASD to move around your guy(red circle), and left click to shoot a ball towards the mouse
 // bullets will bounce twice before disapearing on the third collision(always disapears on collision w player)
-// the hand of cards on the left of the screen 
+// the hand of cards on the left of the screen are your ammo, takes time to reload
 
 
 // Extra for experts:
-
+// used Matter.js, introduced and demoed by ChatGPT, but I learned how to use it and applied it how I needed it
 
 
 
@@ -94,12 +94,7 @@ function Spades(n){
   };
   this.dmg = this.variable(n);
   this.range = {full:6/20, max: 6/20+2/20};
-  this.dist = function(){
-    return millis()+1000*(6/20);
-  };
-  this.toc = function(){
-    return millis();
-  };
+  this.dist = (12/20)*1000;
   this.prev = {x:0, y:0};
   this.spd = 0.5/20;
   this.bounces = 2;
@@ -174,7 +169,10 @@ function doReload(player){
 function MakeBullet(player){
   if(game){
     let card = player.gun.splice(0,1)[0];
-    console.log("made:",card);
+    // console.log("start of make:",millis());
+    card.dist += millis();
+    // console.log("made:",card);
+    let shots = [];
     let shot;
     // card = card[0];
     let vect = aim();
@@ -228,6 +226,7 @@ function MakeBullet(player){
       // console.log(shot);
       // console.log(shot.velocity);
     }
+    // console.log("end of make:",millis());
 
     // console.log(card);
     cool = millis()+card.cool;
@@ -282,6 +281,7 @@ function bullDraw(){
   }
 }
 let toremove = {blanks:[],bodies:[]};
+let tim = 0; 
 function bullMove(){
   //make cleaner in future version
   let b = bullets.bulls;
@@ -292,12 +292,14 @@ function bullMove(){
     const vel = b[shot].body.velocity;
     bullfall(b[shot],toremove,shot);
     // if(Matter.Vector.magnitude(vel)< bullets.info[shot].spd){
+    // console.log("tim:",millis()-tim);
     const cheese = (b[shot].vector.x + b[shot].vector.y)/2;
     Matter.Body.setVelocity(b[shot].body, Matter.Vector.mult(Matter.Vector.normalise(vel), b[shot].spd*wind.size));
-    last = b[shot].prev;
-    now = b[shot].body.position;
-    travel = dist(last.x, last.y, now.x, now.y);
-    console.log(travel, millis()-b[shot].toc);
+    // tim = millis()
+    // last = b[shot].prev;
+    // now = b[shot].body.position;
+    // travel = dist(last.x, last.y, now.x, now.y);
+    // console.log(travel, millis()-b[shot].toc);
 
     // }
   }
