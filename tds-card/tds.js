@@ -110,23 +110,35 @@ function Spades(n){
   this.rank = n;
 }
 
-let card = {
+let cardF = {
   wrat: 4/20,
   hrat: 6/20,
   mrat: 1/20
 };
 
-function disCard(spot){
-  rectMode(CENTER);
+function disCard(spot, card){
+  rectMode(CORNER);
   stroke(0);
   strokeWeight(2);
-  let w = card.wrat *wind.size;
-  let h = card.hrat *wind.size;
-  let margin = card.mrat*wind.size;
+  let w = cardF.wrat *wind.size;
+  let h = cardF.hrat *wind.size;
+  let margin = cardF.mrat*wind.size;
+  // console.log(cardF.mrat, wind.size);
   let y = margin *spot/3;
+  y =0 - (y-margin*2);
+  let x = uiEdge.maxX/4;
+
+  // console.log(margin, spot);
   // fill(200);
   // console.log(y, wind.size);
-  rect(uiEdge.maxX/2, 0 - (y-margin*5), w, h);
+  // console.log(y-margin*2);
+  
+  rect(x, y, w, h);
+  textAlign(LEFT,TOP);
+  fill(0);
+  stroke(255);
+  textSize(1/20*wind.size);
+  text(card.rank, x+margin/3, y+margin/3);
 }
 
 
@@ -395,7 +407,7 @@ function reWind(){
       w = h/tall*wide;
     }
   }
-  console.log(w,h);
+  // console.log(w,h);
   wind.w = w;
   wind.h = h;
   wind.size = h;
@@ -407,9 +419,12 @@ function display(){
 
   reUI();
 
+  // make the border walls have same info/formatting as rest of bodies
+
   resize(player);
+  console.log(player);
   for (let wall of border){
-    resize(wall);
+    resize({body: wall});
   }
   for (let shape of obstacles.shapes){
     resize(shape);
@@ -426,9 +441,11 @@ function display(){
 function resize(thing){
   // console.log(thing);
   let body = thing.body;
-  body.position = {x: uiEdge.maxX+thing.xrat*wind.size, y: thing.yrat*wind.size};
+  // body.position = {x: uiEdge.maxX+thing.xrat*wind.size, y: thing.yrat*wind.size};
   let type = body.label;
   if ( type === "Circle Body"){
+    // console.log("circle");
+    thing.xrat
     body.circleRadius = thing.srat * wind.size;
   }
   else if(type === "Rectangle Body"){
@@ -594,7 +611,7 @@ function setup() {
 
 
 function draw() {
-  // display();
+  display();
   background(30);
 
 
@@ -612,14 +629,13 @@ function draw() {
   rect(uiEdge.maxX*3,0,wind.w,wind.h);
   // rect(0,uiEdge.maxY*3,wind.w,wind.h);
 
-  let f = 20;
-  let marg = 20;
+  let f = 40;
   // console.log(player.gun);
   for (let place in player.gun){
     // console.log("yes");
     fill(f);
-    disCard(player.gun.length-(place+1),marg);
-    f += 75;
+    disCard(player.gun.length-(place+1),player.gun[place]);
+    f += 35;
   }
 
   moveP(player);
