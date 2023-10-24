@@ -477,7 +477,7 @@ function disRect(info){
   strokeWeight(0);
   fill(info.clr);
   let thing = wind.size/aspect.m;
-  // console.log("pos:",pos);
+  console.log("shit",info, info.xrat*thing);
   rect(x + info.xrat*thing, y + info.yrat*thing, info.wrat*thing, info.hrat*thing);
 }
 
