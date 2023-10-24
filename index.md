@@ -9,6 +9,8 @@
 
 - [Terrain](terrain-gen)
 
+- [2D array demo](2d-demo)
+
 ## Projects...
 
 - [Int Scene: Go Fish v1](go-fish)
