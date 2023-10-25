@@ -17,8 +17,8 @@
 // assume that all sizes are for a screen of 20 units
 // ex: size 0.5 should be 0.5/20 units of sizelet aspect = {
 let aspect = {
-  m: 10,
-  r: 10/20,
+  m: 15,
+  r: 15/20,
 };
 
 let player = {
@@ -193,7 +193,7 @@ function MakeBullet(player){
     let shot;
     // card = card[0];
     let vect = aim();
-    console.log(vect);
+    // console.log(vect);
     // console.log(card);
     let bs = card.srat;
     // console.log(bs);
@@ -223,7 +223,7 @@ function MakeBullet(player){
       // console.log(card,body);
       card.body = Matter.Bodies.circle(sumx, sumy, bs,{restitution:1});
       shot = card.body;
-      console.log(shot);
+      // console.log(shot);
       card.xrat = shot.position.x / aspect.m;
       card.yrat = shot.position.y / aspect.m;
       bullets.bulls.push(card);
@@ -335,7 +335,7 @@ function bullCollide(){
     }else{
       console.log(objects);
       for (let obj of objects){
-        console.log(shot,obj);
+        // console.log(shot,obj);
         if (Matter.Collision.collides(shot.body, obj)) {
           // console.log(obj);
           // console.log("hit something wall like");
@@ -477,7 +477,7 @@ function disRect(info){
   strokeWeight(0);
   fill(info.clr);
   let thing = wind.size/aspect.m;
-  console.log("shit",info, info.xrat*thing);
+  // console.log("shit",info, info.xrat*thing);
   rect(x + info.xrat*thing, y + info.yrat*thing, info.wrat*thing, info.hrat*thing);
 }
 
@@ -502,14 +502,14 @@ for (let rat of posrat){
   thisxrat = rat.x;
   for (let xflip of state){
     for (let yflip of state){
-      console.log("flips:",xflip,yflip);
-      console.log(thisxrat,thisyrat);
+      // console.log("flips:",xflip,yflip);
+      // console.log(thisxrat,thisyrat);
       obstacles.shapes.push(structuredClone(obstacles.base));
       obstacles.shapes[obstacles.shapes.length-1].xrat = Math.abs(xflip - thisxrat);
       obstacles.shapes[obstacles.shapes.length-1].yrat = Math.abs(yflip - thisyrat);
       obstacles.shapes[obstacles.shapes.length-1].wrat = thiswrat;
       obstacles.shapes[obstacles.shapes.length-1].hrat = thishrat;
-      console.log(obstacles.shapes[obstacles.shapes.length-1]);
+      // console.log(obstacles.shapes[obstacles.shapes.length-1]);
     }
   }
 }
@@ -544,7 +544,7 @@ function makeRectbody(shape){
   // let y = uiEdge.maxY;
   // console.log(x,y);
   let bod = Matter.Bodies.rectangle(shape.xrat*aspect.r, shape.yrat*aspect.r, shape.wrat*aspect.r, shape.hrat*aspect.r, {isStatic: true});
-  console.log("bod:", bod);
+  // console.log("bod:", bod);
   return bod;
 }
 
@@ -559,19 +559,25 @@ function setup() {
   prepareDeck(player);
 
   // wrote this myself but it was mostly a change values kind of deal
-  let thin = 1/20 *aspect.r;
-  let long = 20/20 *aspect.r;
+  let thin = 20 *aspect.r;//aspect.m*wind.size;
+  let long = 300 *aspect.r;//aspect.m*wind.size;
   // let x = uiEdge.maxX;
   // let y = uiEdge.maxY;
-  // north
   // console.log(typeof (0+wind.size/2));
-  border.push(Matter.Bodies.rectangle(long/2,thin/2,long,thin, {isStatic:true}));
+
+  // north
+  border.push(Matter.Bodies.rectangle(long/2,-thin/4,long,thin, {isStatic:true}));
   // east
-  border.push(Matter.Bodies.rectangle(long+thin/2,long/2,thin,long,{isStatic:true}));
+  border.push(Matter.Bodies.rectangle(long+thin/4,long/2,thin,long,{isStatic:true}));
   // south
-  border.push(Matter.Bodies.rectangle(long/2,long+thin/2,long,thin,{isStatic:true}));
+  border.push(Matter.Bodies.rectangle(long/2,long+thin/4,long,thin,{isStatic:true}));
   // west
-  border.push(Matter.Bodies.rectangle(thin/2,long/2,thin,long, {isStatic:true}));
+  border.push(Matter.Bodies.rectangle(-thin/4,long/2,thin,long, {isStatic:true}));
+
+  console.log(border);
+  for (let wall in border){
+    console.log("wall pos:",border[wall].pos);
+  }
 
 
   //I learned about a little thing called restitution and that it makes things bouncy...
@@ -587,7 +593,7 @@ function setup() {
   Matter.Runner.run(engine);
 
   player.body = Matter.Bodies.circle(spawn.x, spawn.y, player.srat);
-  // console.log(player.body);
+  console.log(player.body);
   player.xrat = player.body.position.x/aspect.m;
   player.yrat = player.body.position.y/aspect.m;
   Matter.World.add(engine.world, [player.body]);
@@ -621,8 +627,8 @@ function setup() {
 
 
 function draw() {
-  display();
-  background(30);
+  // display();
+  // background(30);
 
 
   if (player.reserves.length >=4){
@@ -664,6 +670,12 @@ function draw() {
   }
 
   doBull();
+
+  for (let wall in border){
+    if (Matter.Collision.collides(player.body, border[wall])){
+      console.log("hit a border");
+    }
+  }
   
 }
 
