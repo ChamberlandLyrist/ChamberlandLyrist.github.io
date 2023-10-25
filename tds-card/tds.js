@@ -17,8 +17,9 @@
 // assume that all sizes are for a screen of 20 units
 // ex: size 0.5 should be 0.5/20 units of sizelet aspect = {
 let aspect = {
-  m: 15,
-  r: 15/20,
+  m: 40,
+  r: 40/20,
+  c: 1/20
 };
 
 let player = {
@@ -79,8 +80,8 @@ function moveP(player){
     Matter.Body.setVelocity(body, Matter.Vector.mult(Matter.Vector.normalise(velocity1), 0));
   }
 
-  player.xrat = pos.x / aspect.m;
-  player.yrat = pos.y / aspect.m;
+  player.xrat = pos.x;
+  player.yrat = pos.y;
 
   // console.log(pos);
 }
@@ -99,9 +100,9 @@ function Spades(n){
   };
   this.dmg = this.variable(n);
   this.range = {full:6*aspect.r, max: 6*aspect.r+2*aspect.r};
-  this.dist = (12/20)*1000;
+  this.dist = (6*aspect.r)*1000;
   this.prev = {x:0, y:0};
-  this.spd = 0.5/20;
+  this.spd = 0.5*aspect.r;
   this.bounces = 2;
   // cool is in millis
   this.cool = 1*1000,
@@ -224,8 +225,8 @@ function MakeBullet(player){
       card.body = Matter.Bodies.circle(sumx, sumy, bs,{restitution:1});
       shot = card.body;
       // console.log(shot);
-      card.xrat = shot.position.x / aspect.m;
-      card.yrat = shot.position.y / aspect.m;
+      card.xrat = shot.position.x ;
+      card.yrat = shot.position.y ;
       bullets.bulls.push(card);
       // console.log("player",player.body.position.x,player.body.position.y);
       // console.log(shot.position.x-bs*2,shot.position.y-bs*2);
@@ -237,7 +238,8 @@ function MakeBullet(player){
       Matter.World.add(engine.world, [shot]);
       
       Matter.Body.applyForce(shot, shot.position, {x: vect.x/(aspect.r*100), y: vect.y/(aspect.r*100)});
-      Matter.Body.setVelocity(shot, Matter.Vector.mult(Matter.Vector.normalise(shot.velocity), card.spd));
+      console.log("card.spd:", card.spd);
+      Matter.Body.setVelocity(shot, Matter.Vector.mult(Matter.Vector.normalise(shot.velocity), card.spd*100));
       
       
       // console.log(shot);
@@ -308,8 +310,9 @@ function bullMove(){
     bullfall(b[shot],toremove,shot);
     // if(Matter.Vector.magnitude(vel)< bullets.info[shot].spd){
     // console.log("tim:",millis()-tim);
-    const cheese = (b[shot].vector.x + b[shot].vector.y)/2;
-    Matter.Body.setVelocity(b[shot].body, Matter.Vector.mult(Matter.Vector.normalise(vel), b[shot].spd*wind.size));
+    // const cheese = (b[shot].vector.x + b[shot].vector.y)/2;
+    Matter.Body.setVelocity(b[shot].body, Matter.Vector.mult(Matter.Vector.normalise(vel), b[shot].spd));
+    console.log("bullet moved:",b[shot]);
     // tim = millis()
     // last = b[shot].prev;
     // now = b[shot].body.position;
@@ -333,7 +336,7 @@ function bullCollide(){
       toremove.bodies.push(shot.body);
       toremove.blanks.push(place);
     }else{
-      console.log(objects);
+      // console.log(objects);
       for (let obj of objects){
         // console.log(shot,obj);
         if (Matter.Collision.collides(shot.body, obj)) {
@@ -474,7 +477,7 @@ function disRect(info){
   let x = uiEdge.maxX;
   let y = uiEdge.maxY;
   rectMode(CENTER);
-  strokeWeight(0);
+  strokeWeight(1);
   fill(info.clr);
   let thing = wind.size/aspect.m;
   // console.log("shit",info, info.xrat*thing);
@@ -543,7 +546,7 @@ function makeRectbody(shape){
   // let x = uiEdge.maxX;
   // let y = uiEdge.maxY;
   // console.log(x,y);
-  let bod = Matter.Bodies.rectangle(shape.xrat*aspect.r, shape.yrat*aspect.r, shape.wrat*aspect.r, shape.hrat*aspect.r, {isStatic: true});
+  let bod = Matter.Bodies.rectangle(shape.xrat, shape.yrat, shape.wrat, shape.hrat, {isStatic: true});
   // console.log("bod:", bod);
   return bod;
 }
@@ -558,21 +561,20 @@ function setup() {
   // console.log(player.deck);
   prepareDeck(player);
 
-  // wrote this myself but it was mostly a change values kind of deal
-  let thin = 20 *aspect.r;//aspect.m*wind.size;
-  let long = 300 *aspect.r;//aspect.m*wind.size;
-  // let x = uiEdge.maxX;
+  // idk why these nummbers but it works
+  let thin = 2 *aspect.r;
+  let long = 20 *aspect.r;
   // let y = uiEdge.maxY;
   // console.log(typeof (0+wind.size/2));
 
   // north
-  border.push(Matter.Bodies.rectangle(long/2,-thin/4,long,thin, {isStatic:true}));
+  border.push(Matter.Bodies.rectangle(long/2,-thin/2,long,thin, {isStatic:true}));
   // east
-  border.push(Matter.Bodies.rectangle(long+thin/4,long/2,thin,long,{isStatic:true}));
+  border.push(Matter.Bodies.rectangle(long+thin/2,long/2,thin,long,{isStatic:true}));
   // south
-  border.push(Matter.Bodies.rectangle(long/2,long+thin/4,long,thin,{isStatic:true}));
+  border.push(Matter.Bodies.rectangle(long/2,long+thin/2,long,thin,{isStatic:true}));
   // west
-  border.push(Matter.Bodies.rectangle(-thin/4,long/2,thin,long, {isStatic:true}));
+  border.push(Matter.Bodies.rectangle(-thin/2,long/2,thin,long, {isStatic:true}));
 
   console.log(border);
   for (let wall in border){
@@ -628,7 +630,7 @@ function setup() {
 
 function draw() {
   // display();
-  // background(30);
+  background(30);
 
 
   if (player.reserves.length >=4){
