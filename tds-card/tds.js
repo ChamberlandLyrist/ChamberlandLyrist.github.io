@@ -102,7 +102,7 @@ function Spades(n){
   this.range = {full:6*aspect.r, max: 6*aspect.r+2*aspect.r};
   this.dist = (6*aspect.r)*1000;
   this.prev = {x:0, y:0};
-  this.spd = 0.5*aspect.r;
+  this.spd = 1*aspect.r;
   this.bounces = 2;
   // cool is in millis
   this.cool = 1*1000,
@@ -236,8 +236,9 @@ function MakeBullet(player){
 
       // const cheese = (card.vector.x + card.vector.y)/2;
       Matter.World.add(engine.world, [shot]);
-      
-      Matter.Body.applyForce(shot, shot.position, {x: vect.x/(aspect.r*100), y: vect.y/(aspect.r*100)});
+      vect.x/
+
+      Matter.Body.applyForce(shot, shot.position, {x: vect.x/(aspect.r*1000), y: vect.y/(aspect.r*1000)});
       console.log("card.spd:", card.spd);
       Matter.Body.setVelocity(shot, Matter.Vector.mult(Matter.Vector.normalise(shot.velocity), card.spd*100));
       
@@ -272,8 +273,8 @@ function pShoot(player){
 
 
 function aim(){
-  let start = {x: player.xrat*wind.size, y: player.yrat*wind.size};
-  let end = {x: mouseX, y: mouseY};
+  let start = {x: player.xrat, y: player.yrat};
+  let end = {x: mouseX/wind.size, y: mouseY/wind.size};
   let reticle = {x: end.x-(start.x), y: end.y-(start.y)};
   // console.log(reticle);
   let vector = Matter.Vector.normalise(reticle);

@@ -11,6 +11,8 @@
 
 - [2D array demo](2d-demo)
 
+- [Game of life](2d-demo-Copy)
+
 ## Projects...
 
 - [Int Scene: Go Fish v1](go-fish)
