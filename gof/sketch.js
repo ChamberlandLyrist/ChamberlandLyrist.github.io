@@ -92,6 +92,7 @@ function keyTyped() {
     generateEmptyGrid(GRID_SIZE,GRID_SIZE);
   }
   else if (key === " ") {
+    key = "";
     grid = nextTurn();
   }
 }
@@ -101,19 +102,19 @@ function nextTurn(){
   let shift = [-1,0,1];
   // look at every cell
   for (let y = 0; y < GRID_SIZE; y++){
-    for (let x = 0; x< GRID_SIZE; x++){
+    for (let x = 0; x < GRID_SIZE; x++){
+      // console.log(y,x);
       // count neighbours
       let neighbours = 0;
       // look at all cells around in a 3x3 grid
       for (let shifty of shift){
         for (let shiftx of shift){
-          // console.log(x+shiftx >= 0 && x+shiftx < GRID_SIZE && y+shifty >= 0 && y+shifty < GRID_SIZE);
-          if (x+shiftx >= 0 && x+shiftx <= GRID_SIZE && y+shifty >= 0 && y+shifty <= GRID_SIZE){
-            neighbours += grid[y][x];
-          }
+          // console.log(grid, y, x, shifty, shiftx);
+          neighbours += checkNeighbour(x+shiftx,y+shifty);
+          
         }
       }
-      let self =grid[y][x];
+      let self = grid[y][x];
       neighbours -= self;
       if (self === 0){
         // new
@@ -131,6 +132,7 @@ function nextTurn(){
       }
     }
   }
+  return nextGrid;
 }
 
 function checkNeighbour(x,y){
@@ -141,6 +143,6 @@ function checkNeighbour(x,y){
     return grid[y][x];
   }
   else{
-    return false;
+    return 0;
   }
 }
