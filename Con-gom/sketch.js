@@ -21,7 +21,7 @@ let start = false;
 let lost = false;
 
 function draw() {
-  background(220);
+  background("red");
   displayGrid();
   // if (!lost && start){
     
@@ -36,9 +36,22 @@ function mousePressed() {
     activateCell(x, y);
     // if not started, start
     if (!start){
+      for (let shifty of shift){
+        for (let shiftx of shift){
+          let col = x+shiftx;
+          let row = y+shifty;
+          if (col >= 0 && col < GRID_SIZE.w && row >= 0 && row < GRID_SIZE.h && Math.abs(shiftx) !== Math.abs(shifty)){
+            activateCell(col,row);
+            flood.push({x: col, y: row});
+          }
+        }
+      }
       start = true;
-      grid = generateRandomGrid(GRID_SIZE.w,GRID_SIZE.h);
-      floodFill(x,y);
+      layMines(30,GRID_SIZE.h,GRID_SIZE.w);
+      // console.log(grid);
+      for (let pos of flood){
+        floodFill(pos.x,pos.y);
+      }
     }
     else{
       grid = nextTurn();
@@ -47,19 +60,19 @@ function mousePressed() {
   }
 }
 
-function toggleCell(x, y) {
-  //check that we are within the grid, then toggle
-  if (x >= 0 && x < GRID_SIZE.w && y >= 0 && y < GRID_SIZE.h) {
-    if (grid[y][x] === 0) {
-      grid[y][x] = 1;
-    }
-    else if (grid[y][x] === 1) {
-      grid[y][x] = 0;
-    }
-  }
-}
+// function toggleCell(x, y) {
+//   //check that we are within the grid, then toggle
+//   if (x >= 0 && x < GRID_SIZE.w && y >= 0 && y < GRID_SIZE.h) {
+//     if (grid[y][x] === 0) {
+//       grid[y][x] = 1;
+//     }
+//     else if (grid[y][x] === 1) {
+//       grid[y][x] = 0;
+//     }
+//   }
+// }
 
-let flood;
+let flood = [];
 
 function activateCell(x, y){
   if (x >= 0 && x < GRID_SIZE.w && y >= 0 && y < GRID_SIZE.h) {
@@ -83,9 +96,9 @@ function floodFill(x,y){
     for (let shiftx of shift){
       let row = y+shifty;
       let col = x+shiftx;                                                 
-      if (col >= 0 && col < GRID_SIZE.w && row >= 0 && row < GRID_SIZE.h && Math.abs(shiftx) !== Math.abs(shifty)){
+      if (col >= 0 && col < GRID_SIZE.w && row >= 0 && row < GRID_SIZE.h && Math.abs(shiftx) !== Math.abs(shifty) && grid[y][x].adj === 0){
         let box = grid[row][col];  
-                          //if neither a flag or a bomb is present
+        //if neither a flag or a bomb is present
         if (!box.open && box.flag+box.bomb === 0){
           // console.log("floodfilled:",x,y);
           flood.push({x: col, y: row});
@@ -95,7 +108,7 @@ function floodFill(x,y){
     }
   }
   let thisflood = flood;
-  // console.log("thisflood",thisflood);
+  console.log("thisflood",thisflood);
   for (let pos of thisflood){
     // console.log(pos);
     floodFill(pos.x,pos.y);
@@ -113,10 +126,12 @@ function displayGrid() {
       if (box.open === true) {
         fill("white");
         rect(col, row, cellSize);
-        fill("red");
-        textAlign(LEFT,TOP);
-        textSize(cellSize);
-        text(box.adj, col, row);
+        if ( box.adj >0){
+          fill("red");
+          textAlign(LEFT,TOP);
+          textSize(cellSize);
+          text(box.adj, col, row);
+        }
       }
       else if (box.open === false) {
         fill("grey");
@@ -132,34 +147,6 @@ function displayGrid() {
       
     }
   }
-}
-
-function generateRandomGrid(cols, rows) {
-  let newGrid = [];
-  let bombs = 70;
-  for (let y = 0; y < rows; y++) {
-    newGrid.push([]);
-    for (let x = 0; x < cols; x++) {
-      // check to see if it was the origin box
-      if (grid[y][x].open === false){
-        // make bomb if bombs left
-        if (random(100) > 40 && bombs >0) {
-          bombs --;
-          // console.log("bomb",x,y);
-          newGrid[y].push({open: false, adj: 0, bomb: 1, flag: 0});
-        }
-        // don't make bomb
-        else{
-          // console.log("no bomb",x,y);
-          newGrid[y].push({open: false, adj: 0, bomb: 0, flag: 0});
-        }
-      }
-      else{
-        newGrid[y].push(grid[y][x]);
-      }
-    }
-  }
-  return newGrid;
 }
 
 function generateStartGrid(cols, rows) {
@@ -178,28 +165,51 @@ function generateEmptyGrid(cols, rows) {
   for (let y = 0; y < rows; y++) {
     newGrid.push([]);
     for (let x = 0; x < cols; x++) {
-      newGrid[y].push({adj: 0, bomb: 0, flag: 0});
+      newGrid[y].push({open: false, adj: 0, bomb: 0, flag: 0});
     }
   }
   return newGrid;
 }
 
-function keyTyped() {
-  if (key === "r") {
-    generateRandomGrid(GRID_SIZE,GRID_SIZE);
+function layMines(amount, cols, rows){
+  // find all the positions possible
+  let positions = [];
+  for (let y = 0; y < cols; y++){
+    for (let x = 0; x < rows; x++){
+      // check to see if it is not the starting cell(s)
+      // console.log(y,x);
+      if (grid[y][x].open === false){
+        positions.push({y: y, x: x});
+      }
+    }
   }
-  else if (key === "e") {
-    generateEmptyGrid(GRID_SIZE,GRID_SIZE);
-  }
-  else if (key === " ") {
-    key = "";
-    grid = nextTurn();
+  // place the mines randomly
+  for (let i = amount; i>0; i--){
+    // find a random place
+    let pos = random(positions);
+    // place the mine
+    grid[pos.y][pos.x].bomb = 1;
+    // remove that place for the rest of the mines
+    positions.splice(positions.indexOf(pos),1);
   }
 }
 
+// function keyTyped() {
+//   if (key === "r") {
+//     generateRandomGrid(GRID_SIZE,GRID_SIZE);
+//   }
+//   else if (key === "e") {
+//     generateEmptyGrid(GRID_SIZE,GRID_SIZE);
+//   }
+//   else if (key === " ") {
+//     key = "";
+//     grid = nextTurn();
+//   }
+// }
+
 let shift = [-1,0,1];
 function nextTurn(){
-  let nextGrid = generateEmptyGrid(GRID_SIZE.w, GRID_SIZE.h);
+  let nextGrid = structuredClone(grid);
   // look at every cell
   for (let y = 0; y < GRID_SIZE.h; y++){
     for (let x = 0; x < GRID_SIZE.w; x++){
@@ -208,24 +218,27 @@ function nextTurn(){
         let neighbours = allNeighbours(x,y);
         let self = grid[y][x].bomb;
         neighbours -= self;
-        console.log("neigh:",neighbours);
+        // console.log("constr. clone:", y, x, newCell);
+        // console.log("neigh:",neighbours);
         if (self === 0){
           // new
           if(neighbours === 3){
-            nextGrid[y][x] = structuredClone(grid[y][x]);
+            // nextGrid[y][x] = newCell;
             nextGrid[y][x].bomb = 1;
           }
         }
         else if (neighbours === 2 || neighbours === 3){
           // stay alive
-          nextGrid[y][x] = structuredClone(grid[y][x]);
+          // nextGrid[y][x] = newCell;
           nextGrid[y][x].bomb = 1;
         }
         else {
           // die
-          nextGrid[y][x] = structuredClone(grid[y][x]);
+          // nextGrid[y][x] = newCell;
+          console.log(nextGrid[y][x]);
           nextGrid[y][x].bomb = 0;
         }
+        console.log("this cell:", y,x,nextGrid[y][x]);
       }
     }
   }
@@ -242,7 +255,7 @@ function allNeighbours(x,y){
       neighbours += checkNeighbour(x+shiftx,y+shifty);
     }
   }
-  console.log("neighbours:", neighbours);
+  // console.log("neighbours:", neighbours);
 
   return neighbours;
 }
@@ -253,7 +266,7 @@ function checkNeighbour(x,y){
   // console.log(grid[y][x]);
   if (x >= 0 && x < GRID_SIZE.w && y >= 0 && y < GRID_SIZE.h && grid[y][x].flag === 0) {
     let state = grid[y][x].bomb;
-    console.log("state:",state);
+    // console.log("state:",state);
     return state;
   }
   else{

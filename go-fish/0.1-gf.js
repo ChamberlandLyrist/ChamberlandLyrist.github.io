@@ -95,7 +95,7 @@ let q;
 
 function draw() {
   
-  if (w !=windowWidth || h !=windowHeight){
+  if (w !==windowWidth || h !==windowHeight){
     screen();
     limit();
   }
