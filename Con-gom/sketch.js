@@ -1,11 +1,13 @@
 let grid;
 const GRID_SIZE = {
-  h: 10,
-  w: 15
+  h: 50,
+  w: 70,
+  mines: 900
 };
 let cellSize;
 
 function setup() {
+  document.addEventListener("contextmenu", event => event.preventDefault())
   createCanvas(windowWidth, windowHeight);
   grid = generateStartGrid(GRID_SIZE.w, GRID_SIZE.h);
 
@@ -33,10 +35,11 @@ function mousePressed() {
   let x = Math.floor(mouseX/cellSize);
 
   if(grid[y][x].open === false){
-    activateCell(x, y);
-    // if not started, start
-    if (!start){
-      for (let shifty of shift){
+    if (mouseButton === LEFT){
+      activateCell(x, y);
+      // if not started, start
+      if (!start){
+        for (let shifty of shift){
         for (let shiftx of shift){
           let col = x+shiftx;
           let row = y+shifty;
@@ -45,18 +48,22 @@ function mousePressed() {
             flood.push({x: col, y: row});
           }
         }
-      }
-      start = true;
-      layMines(30,GRID_SIZE.h,GRID_SIZE.w);
-      // console.log(grid);
-      for (let pos of flood){
+        }
+        start = true;
+        layMines(GRID_SIZE.mines,GRID_SIZE.h,GRID_SIZE.w);
+        // console.log(grid);
+        for (let pos of flood){
         floodFill(pos.x,pos.y);
+        }
       }
-    }
-    else{
-      grid = nextTurn();
-    }
+      else{
+        grid = nextTurn();
+      }
     // toggleCell(x, y);   //current cell
+    }
+    else if (mouseButton === RIGHT){
+      flagCell(x, y);
+    }
   }
 }
 
@@ -77,14 +84,28 @@ let flood = [];
 function activateCell(x, y){
   if (x >= 0 && x < GRID_SIZE.w && y >= 0 && y < GRID_SIZE.h) {
     let box = grid[y][x];
-    if (box.open === false) {
-      box.open = true;
-      if(box.bomb === 1){
-        lost = true;
+    if (box.flag === 0){
+      if (box.open === false) {
+        box.open = true;
+        if(box.bomb === 1){
+          lost = true;
+        }
+        if(start){
+          floodFill(x,y);
+        }
       }
-      if(start){
-        floodFill(x,y);
-      }
+    }
+  }
+}
+
+function flagCell(x,y){
+  if (x >= 0 && x < GRID_SIZE.w && y >= 0 && y < GRID_SIZE.h) {
+    let box = grid[y][x];
+    if (box.flag === 0) {
+      box.flag = 1;
+    }
+    else if (box.flag === 1){
+      box.flag = 0;
     }
   }
 }
@@ -144,7 +165,11 @@ function displayGrid() {
         circle(col+cellSize/8, row+cellSize/8, cellSize*0.8);
         // }
       }
-      
+      if (box.flag === 1){
+        fill("red");
+        ellipseMode(CORNER);
+        circle(col+cellSize/4, row+cellSize/4, cellSize*0.4);
+      }
     }
   }
 }
