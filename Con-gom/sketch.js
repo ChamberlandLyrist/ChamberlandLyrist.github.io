@@ -58,7 +58,7 @@ function mousePressed() {
         }
       }
       else{
-        // grid = nextTurn();
+        grid = nextTurn();
       }
     // toggleCell(x, y);   //current cell
     }
@@ -144,7 +144,7 @@ function displayGrid() {
       // console.log(x,y);
       let row = y*cellSize;
       let col = x*cellSize;
-      // box.adj = allNeighbours(x,y);
+      box.adj = allNeighbours(x,y);
       if (box.open === true) {
         fill("white");
         rect(col, row, cellSize);
@@ -160,11 +160,11 @@ function displayGrid() {
         rect(col, row, cellSize);
       }
       if (box.bomb === 1){
-        // if (lost){
+        if (lost){
         fill("black");
         ellipseMode(CORNER);
         circle(col+cellSize/8, row+cellSize/8, cellSize*0.8);
-        // }
+        }
       }
       if (box.flag === 1){
         fill("red");
@@ -271,41 +271,41 @@ function nextTurn(){
   return nextGrid;
 }
 
-function conwayCheck(){
-  // look at every cell
-  for (let y = 0; y < GRID_SIZE.h; y++){
-    for (let x = 0; x < GRID_SIZE.w; x++){
-      // console.log(y,x);
-      // if (!grid[y][x].open && grid[y][x].flag === 0){
-        let neighbours = allNeighbours(x,y);
-        let self = grid[y][x].bomb;
-        neighbours -= self;
-        // console.log("constr. clone:", y, x, newCell);
-        // console.log("neigh:",neighbours);
-        if (self === 0){
-          // new
-          if(neighbours === 3){
-            // nextGrid[y][x] = newCell;
-            grid[y][x].adj = 1;
-          }
-        }
-        else if (neighbours === 2 || neighbours === 3){
-          // stay alive
-          // nextGrid[y][x] = newCell;
-          grid[y][x].adj = 1;
-        }
-        else {
-          // die
-          // nextGrid[y][x] = newCell;
-          console.log(nextGrid[y][x]);
-          grid[y][x].adj = 0;
-        }
-        console.log("this cell:", y,x, grid[y][x]);
-      // }
-    }
-  }
-  return grid;
-}
+// function conwayCheck(){
+//   // look at every cell
+//   for (let y = 0; y < GRID_SIZE.h; y++){
+//     for (let x = 0; x < GRID_SIZE.w; x++){
+//       // console.log(y,x);
+//       // if (!grid[y][x].open && grid[y][x].flag === 0){
+//         let neighbours = allNeighbours(x,y);
+//         let self = grid[y][x].bomb;
+//         neighbours -= self;
+//         // console.log("constr. clone:", y, x, newCell);
+//         // console.log("neigh:",neighbours);
+//         if (self === 0){
+//           // new
+//           if(neighbours === 3){
+//             // nextGrid[y][x] = newCell;
+//             grid[y][x].adj = 1;
+//           }
+//         }
+//         else if (neighbours === 2 || neighbours === 3){
+//           // stay alive
+//           // nextGrid[y][x] = newCell;
+//           grid[y][x].adj = 1;
+//         }
+//         else {
+//           // die
+//           // nextGrid[y][x] = newCell;
+//           console.log(nextGrid[y][x]);
+//           grid[y][x].adj = 0;
+//         }
+//         console.log("this cell:", y,x, grid[y][x]);
+//       // }
+//     }
+//   }
+//   return grid;
+// }
 
 function allNeighbours(x,y){
   // count neighbours
