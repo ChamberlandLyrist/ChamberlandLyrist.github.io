@@ -1,8 +1,8 @@
 let grid;
 const GRID_SIZE = {
-  h: 50,
-  w: 70,
-  mines: 900
+  h: 30,
+  w: 50,
+  mines: 600
 };
 let cellSize;
 
@@ -24,7 +24,7 @@ let lost = false;
 
 function draw() {
   background("red");
-  conwayCheck();
+  // conwayCheck();
   displayGrid();
   // if (!lost && start){
     
@@ -41,20 +41,23 @@ function mousePressed() {
       // if not started, start
       if (!start){
         for (let shifty of shift){
-        for (let shiftx of shift){
-          let col = x+shiftx;
-          let row = y+shifty;
-          if (col >= 0 && col < GRID_SIZE.w && row >= 0 && row < GRID_SIZE.h && Math.abs(shiftx) !== Math.abs(shifty)){
-            activateCell(col,row);
-            flood.push({x: col, y: row});
+          for (let shiftx of shift){
+            let col = x+shiftx;
+            let row = y+shifty;
+            if (col >= 0 && col < GRID_SIZE.w && row >= 0 && row < GRID_SIZE.h && Math.abs(shiftx) !== Math.abs(shifty)){
+              activateCell(col,row);
+              // for (let shifty of shift){
+              //   for (let shiftx of shift){
+
+              flood.push({x: col, y: row});
+            }
           }
-        }
         }
         start = true;
         layMines(GRID_SIZE.mines,GRID_SIZE.h,GRID_SIZE.w);
         // console.log(grid);
         for (let pos of flood){
-        floodFill(pos.x,pos.y);
+          floodFill(pos.x,pos.y);
         }
       }
       else{
@@ -62,9 +65,9 @@ function mousePressed() {
       }
     // toggleCell(x, y);   //current cell
     }
-    // else if (mouseButton === RIGHT){
-    //   flagCell(x, y);
-    // }
+    else if (mouseButton === RIGHT){
+      flagCell(x, y);
+    }
   }
 }
 
