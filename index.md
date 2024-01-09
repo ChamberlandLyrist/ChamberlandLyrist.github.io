@@ -19,6 +19,8 @@
 
 - [ballz](ballz-OOP)
 
+-[Sierpinski Tri](sier-demo)
+
 ## Projects...
 
 - [Int Scene: Go Fish v1](go-fish)
